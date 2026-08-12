@@ -34,16 +34,24 @@
 
     const DEFAULT_GAS = [
         {
-            name: 'crine',
-            url: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRe9fj7QAAJUFGahifMVBeDEEW2RtfzPswTTB4pn_Nn8s8t-eI3_xplxHs&s=10'
+            name: 'bulleh',
+            url: 'https://raw.githubusercontent.com/havaianasdestruido/Giggles-Shit/refs/heads/main/res/img/bulleh.jpg'
         },
         {
-            name: 'cry',
-            url: 'https://i.pinimg.com/originals/70/e5/c0/70e5c0d856f602642bab27ed530b0ed2.gif'
+            name: 'crine',
+            url: 'https://raw.githubusercontent.com/havaianasdestruido/Giggles-Shit/refs/heads/main/res/img/crine.jpg'
+        },
+        {
+            name: 'rose',
+            url: 'https://raw.githubusercontent.com/havaianasdestruido/Giggles-Shit/refs/heads/main/res/img/rose.jpg'
         },
         {
             name: 'skull',
-            url: 'https://preview.redd.it/where-are-my-skull-emojis-v0-afvlslmgt4ve1.jpeg?auto=webp&s=6ee6ed553a3b9bcd574a99782fd84a1aa21df907'
+            url: 'https://raw.githubusercontent.com/havaianasdestruido/Giggles-Shit/refs/heads/main/res/img/skull.jpg'
+        },
+        {
+            name: 'trollge',
+            url: 'https://raw.githubusercontent.com/havaianasdestruido/Giggles-Shit/refs/heads/main/res/img/trollge.jpg'
         }
     ];
 
