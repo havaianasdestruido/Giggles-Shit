@@ -3,7 +3,7 @@
 // @namespace    https://github.com/
 // @version      3.0.0
 // @description  Custom image replacement and picker for GitHub comments.
-// @author       You
+// @author       github.com/havaianasdestruido
 // @match        https://github.com/*
 // @grant        GM_addStyle
 // @grant        GM_setValue
