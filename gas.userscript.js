@@ -1,844 +1,1354 @@
 // ==UserScript==
 // @name         Giggles&Shit (GAS)
 // @namespace    https://github.com/
-// @version      3.0.0
-// @description  Custom image replacement and picker for GitHub comments.
-// @author       github.com/havaianasdestruido
+// @version      2.0.0
+// @description  Custom emoji picker for GitHub comments
+// @author       PatoFlamejanteTV
 // @match        https://github.com/*
+// @match        https://gist.github.com/*
+// @run-at       document-idle
 // @grant        GM_addStyle
-// @grant        GM_setValue
-// @grant        GM_getValue
-// @run-at       document-start
 // ==/UserScript==
 
 (() => {
-    'use strict';
+    "use strict";
 
-    const GAS_STORAGE_KEY = 'github-gas-v1';
+    const PREFIX = "[GAS]";
 
-    /*
-     * ============================================================
-     * GAS CONFIG
-     * ============================================================
-     *
-     * Typing:
-     *
-     * :crine:
-     * :cry:
-     * :skull:
-     *
-     * gets immediately replaced with:
-     *
-     * <img src="..." width="30px">
-     */
+    // ============================================================
+    // CONFIG
+    // ============================================================
 
-    const DEFAULT_GAS = [
-        {
-            name: 'bulleh',
-            url: 'https://raw.githubusercontent.com/havaianasdestruido/Giggles-Shit/refs/heads/main/res/img/bulleh.jpg'
-        },
-        {
-            name: 'crine',
-            url: 'https://raw.githubusercontent.com/havaianasdestruido/Giggles-Shit/refs/heads/main/res/img/crine.jpg'
-        },
-        {
-            name: 'rose',
-            url: 'https://raw.githubusercontent.com/havaianasdestruido/Giggles-Shit/refs/heads/main/res/img/rose.jpg'
-        },
-        {
-            name: 'skull',
-            url: 'https://raw.githubusercontent.com/havaianasdestruido/Giggles-Shit/refs/heads/main/res/img/skull.jpg'
-        },
-        {
-            name: 'trollge',
-            url: 'https://raw.githubusercontent.com/havaianasdestruido/Giggles-Shit/refs/heads/main/res/img/trollge.jpg'
-        }
-    ];
+    const CONFIG = {
+        debug: true,
 
-    let gas = loadGas();
+        buttonText: "😈",
 
-    /*
-     * ============================================================
-     * STORAGE
-     * ============================================================
-     */
+        // GitHub custom emoji names.
+        //
+        // Change these to whatever emoji names you want.
+        //
+        // Example:
+        // {
+        //     name: "giggle",
+        //     label: "Giggle",
+        //     emoji: "😭"
+        // }
+        //
+        // The inserted Markdown will be:
+        // :giggle:
+        //
+        // GitHub must actually know/render the emoji for it to appear
+        // as an image.
 
-    function loadGas() {
-        try {
-            const saved = GM_getValue(GAS_STORAGE_KEY, null);
-
-            if (!saved) {
-                return [...DEFAULT_GAS];
+        emojis: [
+            {
+                name: "giggle",
+                label: "Giggle",
+                emoji: "😭"
+            },
+            {
+                name: "shit",
+                label: "Shit",
+                emoji: "💩"
+            },
+            {
+                name: "bruh",
+                label: "Bruh",
+                emoji: "🙏"
+            },
+            {
+                name: "fire",
+                label: "Fire",
+                emoji: "🔥"
+            },
+            {
+                name: "sob",
+                label: "Sob",
+                emoji: "🥀"
+            },
+            {
+                name: "cooked",
+                label: "Cooked",
+                emoji: "😭"
+            },
+            {
+                name: "goofy",
+                label: "Goofy",
+                emoji: "🤡"
+            },
+            {
+                name: "skull",
+                label: "Skull",
+                emoji: "💀"
+            },
+            {
+                name: "based",
+                label: "Based",
+                emoji: "🗿"
+            },
+            {
+                name: "sus",
+                label: "Sus",
+                emoji: "ඞ"
             }
+        ],
 
-            const parsed = JSON.parse(saved);
+        // If true, GAS will also show a floating button when it cannot
+        // find GitHub's toolbar.
+        enableFloatingFallback: true
+    };
 
-            if (!Array.isArray(parsed)) {
-                return [...DEFAULT_GAS];
-            }
+    // ============================================================
+    // STATE
+    // ============================================================
 
-            return parsed.filter(entry =>
-                entry &&
-                typeof entry.name === 'string' &&
-                typeof entry.url === 'string' &&
-                entry.name.trim() !== '' &&
-                entry.url.trim() !== ''
-            );
-        } catch (error) {
-            console.error('[GAS] Failed to load saved GAS:', error);
-            return [...DEFAULT_GAS];
+    const state = {
+        editors: new Set(),
+        activeEditor: null,
+        picker: null,
+        floatingButton: null,
+        scanTimer: null,
+        lastEditorCount: -1,
+        initialized: false
+    };
+
+    // ============================================================
+    // LOGGING
+    // ============================================================
+
+    function log(...args) {
+        if (CONFIG.debug) {
+            console.log(PREFIX, ...args);
         }
     }
 
-    function saveGas() {
-        try {
-            GM_setValue(
-                GAS_STORAGE_KEY,
-                JSON.stringify(gas)
-            );
-        } catch (error) {
-            console.error('[GAS] Failed to save GAS:', error);
-        }
+    function warn(...args) {
+        console.warn(PREFIX, ...args);
     }
 
-    /*
-     * ============================================================
-     * GAS LOOKUP
-     * ============================================================
-     */
-
-    function getGasMap() {
-        const map = new Map();
-
-        for (const entry of gas) {
-            if (
-                !entry ||
-                typeof entry.name !== 'string' ||
-                typeof entry.url !== 'string'
-            ) {
-                continue;
-            }
-
-            const trigger = `:${entry.name.trim()}:`;
-
-            map.set(
-                trigger.toLowerCase(),
-                entry.url.trim()
-            );
-        }
-
-        return map;
+    function error(...args) {
+        console.error(PREFIX, ...args);
     }
 
-    /*
-     * ============================================================
-     * HTML HELPERS
-     * ============================================================
-     */
+    // ============================================================
+    // STYLES
+    // ============================================================
 
-    function escapeGasAttribute(value) {
-        return String(value)
-            .replace(/&/g, '&amp;')
-            .replace(/"/g, '&quot;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;');
-    }
-
-    function createGasImage(url) {
-        return `<img src="${escapeGasAttribute(url)}" width="30px">`;
-    }
-
-    /*
-     * ============================================================
-     * GAS TOKEN REPLACEMENT
-     * ============================================================
-     */
-
-    function replaceGasTokens(text) {
-        const gasMap = getGasMap();
-
-        return text.replace(
-            /:[a-zA-Z0-9_+-]+:/g,
-            token => {
-                const url = gasMap.get(
-                    token.toLowerCase()
-                );
-
-                if (!url) {
-                    return token;
-                }
-
-                return createGasImage(url);
-            }
-        );
-    }
-
-    /*
-     * ============================================================
-     * LIVE GAS REPLACEMENT
-     * ============================================================
-     *
-     * Watches the comment textarea.
-     *
-     * Example:
-     *
-     * hello :crine: bro
-     *
-     * becomes:
-     *
-     * hello <img src="..." width="30px"> bro
-     */
-
-    function setupGasLiveReplacement(textarea) {
-        if (
-            textarea.dataset.gasLiveReplacement === 'true'
-        ) {
+    function installStyles() {
+        if (document.getElementById("gas-styles")) {
             return;
         }
 
-        textarea.dataset.gasLiveReplacement = 'true';
+        const style = document.createElement("style");
+        style.id = "gas-styles";
 
-        let previousValue = textarea.value;
+        style.textContent = `
+            /* =====================================================
+               GAS BUTTON
+               ===================================================== */
 
-        textarea.addEventListener('input', () => {
-            const value = textarea.value;
+            .gas-emoji-button {
+                appearance: none !important;
+                -webkit-appearance: none !important;
 
-            /*
-             * Avoid doing work when the value did not actually
-             * grow. This also helps prevent reacting badly to
-             * GitHub's own input events.
-             */
-            if (value.length >= previousValue.length) {
-                const cursorStart = textarea.selectionStart ?? value.length;
-                const cursorEnd = textarea.selectionEnd ?? cursorStart;
+                box-sizing: border-box !important;
 
-                const beforeCursor =
-                    value.slice(0, cursorStart);
+                display: inline-flex !important;
+                align-items: center !important;
+                justify-content: center !important;
 
-                /*
-                 * Only look for a complete GAS token immediately
-                 * before the cursor.
-                 *
-                 * Examples:
-                 *
-                 * :crine|
-                 * hello :crine|
-                 *
-                 * But not:
-                 *
-                 * :cri|
-                 */
-                const match = beforeCursor.match(
-                    /(^|\s)(:[a-zA-Z0-9_+-]+:)$/i
-                );
+                width: 32px !important;
+                height: 32px !important;
 
-                if (match) {
-                    const token = match[2];
+                min-width: 32px !important;
+                min-height: 32px !important;
 
-                    const gasMap = getGasMap();
+                padding: 0 !important;
+                margin: 0 !important;
 
-                    const url = gasMap.get(
-                        token.toLowerCase()
-                    );
+                border: 1px solid var(--borderColor-default, #3d444d) !important;
+                border-radius: 6px !important;
 
-                    if (url) {
-                        const tokenStart =
-                            cursorStart - token.length;
+                background: var(--bgColor-default, #0d1117) !important;
+                color: var(--fgColor-default, #f0f6fc) !important;
 
-                        const replacement =
-                            createGasImage(url);
+                cursor: pointer !important;
 
-                        const newValue =
-                            value.slice(0, tokenStart) +
-                            replacement +
-                            value.slice(cursorEnd);
+                font-size: 18px !important;
+                line-height: 1 !important;
 
-                        textarea.value = newValue;
+                z-index: 9999 !important;
 
-                        const newCursor =
-                            tokenStart + replacement.length;
-
-                        textarea.selectionStart =
-                            newCursor;
-
-                        textarea.selectionEnd =
-                            newCursor;
-
-                        /*
-                         * Make GitHub aware of the new value.
-                         */
-                        textarea.dispatchEvent(
-                            new Event('input', {
-                                bubbles: true
-                            })
-                        );
-
-                        previousValue = newValue;
-
-                        return;
-                    }
-                }
+                transition:
+                    background-color .12s ease,
+                    border-color .12s ease,
+                    transform .08s ease !important;
             }
 
-            previousValue = value;
-        });
+            .gas-emoji-button:hover {
+                background: var(--bgColor-neutral-muted, #212830) !important;
+                border-color: var(--borderColor-accent-emphasis, #4493f8) !important;
+            }
+
+            .gas-emoji-button:active {
+                transform: scale(.94) !important;
+            }
+
+            .gas-emoji-button.gas-floating {
+                position: fixed !important;
+
+                right: 20px !important;
+                bottom: 20px !important;
+
+                width: 44px !important;
+                height: 44px !important;
+
+                min-width: 44px !important;
+                min-height: 44px !important;
+
+                border-radius: 50% !important;
+
+                font-size: 22px !important;
+
+                box-shadow:
+                    0 8px 30px rgba(0, 0, 0, .35) !important;
+
+                z-index: 2147483646 !important;
+            }
+
+            /* =====================================================
+               PICKER
+               ===================================================== */
+
+            .gas-picker {
+                position: fixed !important;
+
+                width: 340px !important;
+                max-width: calc(100vw - 24px) !important;
+
+                max-height: 420px !important;
+
+                display: flex !important;
+                flex-direction: column !important;
+
+                overflow: hidden !important;
+
+                background: var(--bgColor-default, #0d1117) !important;
+                color: var(--fgColor-default, #f0f6fc) !important;
+
+                border: 1px solid var(--borderColor-default, #3d444d) !important;
+                border-radius: 10px !important;
+
+                box-shadow:
+                    0 16px 50px rgba(0, 0, 0, .45) !important;
+
+                z-index: 2147483647 !important;
+
+                font-family:
+                    -apple-system,
+                    BlinkMacSystemFont,
+                    "Segoe UI",
+                    sans-serif !important;
+            }
+
+            .gas-picker-header {
+                display: flex !important;
+                align-items: center !important;
+
+                gap: 8px !important;
+
+                padding: 10px !important;
+
+                border-bottom:
+                    1px solid var(--borderColor-default, #3d444d) !important;
+            }
+
+            .gas-picker-title {
+                flex: 1 !important;
+
+                font-size: 14px !important;
+                font-weight: 600 !important;
+            }
+
+            .gas-picker-close {
+                appearance: none !important;
+
+                width: 28px !important;
+                height: 28px !important;
+
+                border: 0 !important;
+                border-radius: 6px !important;
+
+                background: transparent !important;
+                color: inherit !important;
+
+                cursor: pointer !important;
+
+                font-size: 16px !important;
+            }
+
+            .gas-picker-close:hover {
+                background: var(--bgColor-neutral-muted, #212830) !important;
+            }
+
+            .gas-picker-search {
+                box-sizing: border-box !important;
+
+                width: 100% !important;
+
+                padding: 7px 9px !important;
+
+                border:
+                    1px solid var(--borderColor-default, #3d444d) !important;
+
+                border-radius: 6px !important;
+
+                outline: none !important;
+
+                background:
+                    var(--bgColor-inset, #010409) !important;
+
+                color: inherit !important;
+
+                font-size: 13px !important;
+            }
+
+            .gas-picker-search:focus {
+                border-color:
+                    var(--borderColor-accent-emphasis, #4493f8) !important;
+            }
+
+            .gas-picker-grid {
+                display: grid !important;
+
+                grid-template-columns:
+                    repeat(6, minmax(0, 1fr)) !important;
+
+                gap: 5px !important;
+
+                padding: 10px !important;
+
+                overflow-y: auto !important;
+            }
+
+            .gas-emoji-item {
+                appearance: none !important;
+
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                justify-content: center !important;
+
+                min-width: 0 !important;
+
+                aspect-ratio: 1 !important;
+
+                padding: 5px !important;
+
+                border: 1px solid transparent !important;
+                border-radius: 7px !important;
+
+                background: transparent !important;
+                color: inherit !important;
+
+                cursor: pointer !important;
+            }
+
+            .gas-emoji-item:hover {
+                background:
+                    var(--bgColor-neutral-muted, #212830) !important;
+
+                border-color:
+                    var(--borderColor-default, #3d444d) !important;
+            }
+
+            .gas-emoji-icon {
+                font-size: 25px !important;
+                line-height: 1 !important;
+            }
+
+            .gas-emoji-name {
+                width: 100% !important;
+
+                margin-top: 4px !important;
+
+                overflow: hidden !important;
+
+                text-overflow: ellipsis !important;
+                white-space: nowrap !important;
+
+                text-align: center !important;
+
+                font-size: 9px !important;
+
+                opacity: .7 !important;
+            }
+
+            .gas-picker-empty {
+                grid-column: 1 / -1 !important;
+
+                padding: 25px !important;
+
+                text-align: center !important;
+
+                opacity: .65 !important;
+
+                font-size: 13px !important;
+            }
+
+            /* =====================================================
+               DEBUG
+               ===================================================== */
+
+            .gas-debug-outline {
+                outline:
+                    3px solid #ff00ff !important;
+
+                outline-offset: 2px !important;
+            }
+        `;
+
+        document.head.appendChild(style);
+
+        log("Styles installed.");
     }
 
-    /*
-     * ============================================================
-     * TEXTAREA FINDER
-     * ============================================================
-     */
+    // ============================================================
+    // VISIBILITY
+    // ============================================================
 
-    function findGasTextarea(toolbar) {
-        const container =
-            toolbar.closest('form') ||
-            toolbar.closest('.js-write-bucket') ||
-            toolbar.parentElement;
+    function isVisible(element) {
+        if (!element) {
+            return false;
+        }
 
-        if (!container) {
+        const style = getComputedStyle(element);
+
+        if (
+            style.display === "none" ||
+            style.visibility === "hidden" ||
+            style.opacity === "0"
+        ) {
+            return false;
+        }
+
+        const rect = element.getBoundingClientRect();
+
+        return (
+            rect.width > 0 &&
+            rect.height > 0
+        );
+    }
+
+    // ============================================================
+    // EDITOR DETECTION
+    // ============================================================
+
+    function getAllEditors() {
+        const result = new Set();
+
+        // --------------------------------------------------------
+        // TEXTAREAS
+        // --------------------------------------------------------
+
+        document.querySelectorAll("textarea").forEach(textarea => {
+            if (!isVisible(textarea)) {
+                return;
+            }
+
+            result.add(textarea);
+        });
+
+        // --------------------------------------------------------
+        // CONTENTEDITABLE
+        // --------------------------------------------------------
+
+        document
+            .querySelectorAll('[contenteditable="true"]')
+            .forEach(element => {
+                if (!isVisible(element)) {
+                    return;
+                }
+
+                result.add(element);
+            });
+
+        // --------------------------------------------------------
+        // GITHUB SPECIFIC FALLBACKS
+        // --------------------------------------------------------
+
+        const selectors = [
+            ".js-comment-body",
+            ".js-issue-comment",
+            ".js-new-comment-form textarea",
+            ".js-new-comment-form [contenteditable='true']",
+            "[data-testid='comment-body']",
+            "[data-testid*='comment'] textarea",
+            "[data-testid*='comment'] [contenteditable='true']",
+            "[data-testid*='markdown'] textarea",
+            "[data-testid*='markdown'] [contenteditable='true']",
+            "[data-testid*='editor'] textarea",
+            "[data-testid*='editor'] [contenteditable='true']"
+        ];
+
+        for (const selector of selectors) {
+            try {
+                document.querySelectorAll(selector).forEach(element => {
+                    if (isVisible(element)) {
+                        result.add(element);
+                    }
+                });
+            } catch (err) {
+                warn("Invalid selector:", selector, err);
+            }
+        }
+
+        return [...result];
+    }
+
+    function describeEditor(editor) {
+        if (!editor) {
             return null;
         }
 
-        return container.querySelector(
-            'textarea.js-comment-field, textarea[name="comment[body]"]'
-        );
+        return {
+            tag: editor.tagName,
+            id: editor.id,
+            className:
+                typeof editor.className === "string"
+                    ? editor.className
+                    : "",
+            name: editor.getAttribute("name"),
+            role: editor.getAttribute("role"),
+            placeholder:
+                editor.getAttribute("placeholder"),
+            ariaLabel:
+                editor.getAttribute("aria-label"),
+            testId:
+                editor.getAttribute("data-testid"),
+            contentEditable:
+                editor.getAttribute("contenteditable"),
+            visible: isVisible(editor)
+        };
     }
 
-    /*
-     * ============================================================
-     * FIND GITHUB HEADING BUTTON
-     * ============================================================
-     */
+    function scanEditors(verbose = true) {
+        const editors = getAllEditors();
 
-    function findGasHeadingButton(toolbar) {
-        const buttons = toolbar.querySelectorAll(
-            'button, summary, a, [role="button"]'
-        );
+        state.editors = new Set(editors);
 
-        for (const button of buttons) {
-            const label = (
-                button.getAttribute('aria-label') ||
-                button.getAttribute('title') ||
-                ''
-            ).toLowerCase();
+        if (
+            verbose ||
+            editors.length !== state.lastEditorCount
+        ) {
+            log(
+                `Found ${editors.length} possible editor(s).`
+            );
 
-            if (
-                label.includes('heading') ||
-                label === 'h'
-            ) {
-                return button;
+            editors.forEach((editor, index) => {
+                log(
+                    `Editor #${index}:`,
+                    describeEditor(editor),
+                    editor
+                );
+            });
+
+            state.lastEditorCount = editors.length;
+        }
+
+        return editors;
+    }
+
+    // ============================================================
+    // FIND EDITOR FROM BUTTON / EVENT
+    // ============================================================
+
+    function findEditorFromElement(element) {
+        if (!element) {
+            return null;
+        }
+
+        // Direct editor.
+        if (
+            element.matches?.("textarea") ||
+            element.matches?.('[contenteditable="true"]')
+        ) {
+            return element;
+        }
+
+        // Search parent.
+        const parentEditor =
+            element.closest?.(
+                "textarea, [contenteditable='true']"
+            );
+
+        if (parentEditor) {
+            return parentEditor;
+        }
+
+        // Search inside parent container.
+        let parent = element;
+
+        for (let i = 0; i < 8 && parent; i++) {
+            const editor =
+                parent.querySelector?.(
+                    "textarea, [contenteditable='true']"
+                );
+
+            if (editor && isVisible(editor)) {
+                return editor;
             }
+
+            parent = parent.parentElement;
         }
 
         return null;
     }
 
-    /*
-     * ============================================================
-     * GAS TOOLBAR BUTTON
-     * ============================================================
-     */
+    function findBestEditor() {
+        // First use currently focused editor.
+        const active = document.activeElement;
 
-    function createGasToolbarButton(toolbar) {
+        const activeEditor =
+            findEditorFromElement(active);
+
+        if (activeEditor) {
+            return activeEditor;
+        }
+
+        // Then use active stored editor.
         if (
-            toolbar.querySelector(
-                '[data-gas-toolbar-button]'
-            )
+            state.activeEditor &&
+            document.contains(state.activeEditor) &&
+            isVisible(state.activeEditor)
         ) {
-            return;
+            return state.activeEditor;
         }
 
-        const textarea = findGasTextarea(toolbar);
+        // Then scan.
+        const editors = scanEditors(false);
 
-        if (!textarea) {
-            return;
-        }
-
-        setupGasLiveReplacement(textarea);
-
-        const button = document.createElement('button');
-
-        button.type = 'button';
-
-        button.className =
-            'gas-toolbar-button Button Button--iconOnly Button--invisible';
-
-        button.dataset.gasToolbarButton = 'true';
-
-        button.setAttribute(
-            'aria-label',
-            'Giggles&Shit'
-        );
-
-        button.setAttribute(
-            'title',
-            'Giggles&Shit'
-        );
-
-        /*
-         * Use the first configured GAS image as the button icon.
-         * Falls back to a simple text icon when the list is empty.
-         */
-        if (gas.length > 0) {
-            const icon = document.createElement('img');
-
-            icon.src = gas[0].url;
-            icon.alt = '';
-            icon.draggable = false;
-
-            button.appendChild(icon);
-        } else {
-            button.textContent = 'G';
-        }
-
-        button.addEventListener('click', event => {
-            event.preventDefault();
-            event.stopPropagation();
-
-            toggleGasPicker(
-                toolbar,
-                button,
-                textarea
+        // Prefer textarea.
+        const textarea =
+            editors.find(
+                element =>
+                    element.tagName === "TEXTAREA"
             );
-        });
 
-        /*
-         * Put GAS immediately BEFORE GitHub's H button.
-         */
-        const headingButton =
-            findGasHeadingButton(toolbar);
-
-        if (
-            headingButton &&
-            headingButton.parentNode
-        ) {
-            headingButton.parentNode.insertBefore(
-                button,
-                headingButton
-            );
-        } else {
-            toolbar.appendChild(button);
+        if (textarea) {
+            return textarea;
         }
+
+        return editors[0] || null;
     }
 
-    /*
-     * ============================================================
-     * GAS PICKER
-     * ============================================================
-     */
+    // ============================================================
+    // TOOLBAR DETECTION
+    // ============================================================
 
-    function toggleGasPicker(
-        toolbar,
-        button,
-        textarea
-    ) {
-        const existing =
-            document.querySelector(
-                '.gas-picker'
+    function getToolbarCandidates(editor) {
+        const candidates = [];
+
+        if (!editor) {
+            return candidates;
+        }
+
+        let current = editor.parentElement;
+
+        for (
+            let depth = 0;
+            depth < 8 && current;
+            depth++
+        ) {
+            // GitHub / Primer common toolbar patterns.
+            const descendants = current.querySelectorAll(
+                [
+                    "button",
+                    "[role='toolbar']",
+                    ".toolbar",
+                    ".BtnGroup",
+                    "[data-toolbar]"
+                ].join(",")
             );
 
-        if (existing) {
-            existing.remove();
+            if (descendants.length) {
+                candidates.push(current);
+            }
+
+            current = current.parentElement;
+        }
+
+        return candidates;
+    }
+
+    function findToolbar(editor) {
+        if (!editor) {
+            return null;
+        }
+
+        // --------------------------------------------------------
+        // Explicit toolbar
+        // --------------------------------------------------------
+
+        let toolbar = null;
+
+        const explicitSelectors = [
+            "[role='toolbar']",
+            "[data-toolbar]",
+            ".toolbar",
+            ".BtnGroup"
+        ];
+
+        let parent = editor.parentElement;
+
+        for (
+            let depth = 0;
+            depth < 8 && parent && !toolbar;
+            depth++
+        ) {
+            for (const selector of explicitSelectors) {
+                const candidate =
+                    parent.querySelector(selector);
+
+                if (
+                    candidate &&
+                    isVisible(candidate)
+                ) {
+                    toolbar = candidate;
+                    break;
+                }
+            }
+
+            parent = parent.parentElement;
+        }
+
+        if (toolbar) {
+            return toolbar;
+        }
+
+        // --------------------------------------------------------
+        // Find nearest container with buttons
+        // --------------------------------------------------------
+
+        parent = editor.parentElement;
+
+        for (
+            let depth = 0;
+            depth < 8 && parent;
+            depth++
+        ) {
+            const buttons =
+                [...parent.querySelectorAll("button")]
+                    .filter(isVisible);
+
+            if (
+                buttons.length > 0 &&
+                buttons.length < 30
+            ) {
+                return parent;
+            }
+
+            parent = parent.parentElement;
+        }
+
+        return null;
+    }
+
+    // ============================================================
+    // BUTTON CREATION
+    // ============================================================
+
+    function createEmojiButton(editor) {
+        const button =
+            document.createElement("button");
+
+        button.type = "button";
+
+        button.className =
+            "gas-emoji-button";
+
+        button.dataset.gasEmojiButton = "true";
+
+        button.setAttribute(
+            "aria-label",
+            "GAS custom emoji"
+        );
+
+        button.setAttribute(
+            "title",
+            "GAS custom emoji"
+        );
+
+        button.textContent =
+            CONFIG.buttonText;
+
+        button.addEventListener(
+            "mousedown",
+            event => {
+                // Don't let GitHub steal focus before we know
+                // which editor we're using.
+                event.preventDefault();
+            }
+        );
+
+        button.addEventListener(
+            "click",
+            event => {
+                event.preventDefault();
+                event.stopPropagation();
+
+                state.activeEditor = editor;
+
+                log(
+                    "GAS button clicked.",
+                    describeEditor(editor)
+                );
+
+                openPicker(
+                    button,
+                    editor
+                );
+            }
+        );
+
+        return button;
+    }
+
+    // ============================================================
+    // INJECT BUTTON
+    // ============================================================
+
+    function injectButton(editor) {
+        if (!editor) {
+            return false;
+        }
+
+        if (!document.contains(editor)) {
+            return false;
+        }
+
+        if (!isVisible(editor)) {
+            return false;
+        }
+
+        // Already injected for this editor.
+        const existing =
+            document.querySelectorAll(
+                ".gas-emoji-button"
+            );
+
+        for (const button of existing) {
+            if (
+                button.dataset.gasEditorId ===
+                getElementId(editor)
+            ) {
+                return true;
+            }
+        }
+
+        const editorId =
+            getElementId(editor);
+
+        // --------------------------------------------------------
+        // Find toolbar
+        // --------------------------------------------------------
+
+        const toolbar =
+            findToolbar(editor);
+
+        if (toolbar) {
+            log(
+                "Found toolbar for editor:",
+                toolbar
+            );
+
+            const button =
+                createEmojiButton(editor);
+
+            button.dataset.gasEditorId =
+                editorId;
+
+            // Prefer adding near existing buttons.
+            const firstButton =
+                toolbar.querySelector("button");
+
+            if (firstButton) {
+                firstButton.parentElement?.appendChild(
+                    button
+                );
+            } else {
+                toolbar.appendChild(button);
+            }
+
+            log(
+                "Injected GAS button into toolbar."
+            );
+
+            return true;
+        }
+
+        log(
+            "No toolbar found for editor."
+        );
+
+        return false;
+    }
+
+    // ============================================================
+    // UNIQUE ELEMENT ID
+    // ============================================================
+
+    let elementIdCounter = 0;
+
+    function getElementId(element) {
+        if (!element.dataset.gasElementId) {
+            element.dataset.gasElementId =
+                `gas-editor-${++elementIdCounter}`;
+        }
+
+        return element.dataset.gasElementId;
+    }
+
+    // ============================================================
+    // FLOATING FALLBACK
+    // ============================================================
+
+    function createFloatingButton() {
+        if (!CONFIG.enableFloatingFallback) {
             return;
         }
 
-        document
-            .querySelectorAll('.gas-picker')
-            .forEach(picker => picker.remove());
+        if (
+            state.floatingButton &&
+            document.contains(state.floatingButton)
+        ) {
+            return;
+        }
 
-        const picker = createGasPicker(
-            toolbar,
-            button,
-            textarea
+        const button =
+            document.createElement("button");
+
+        button.type = "button";
+
+        button.className =
+            "gas-emoji-button gas-floating";
+
+        button.dataset.gasFloating =
+            "true";
+
+        button.setAttribute(
+            "aria-label",
+            "GAS custom emoji picker"
         );
+
+        button.setAttribute(
+            "title",
+            "GAS custom emoji picker"
+        );
+
+        button.textContent =
+            CONFIG.buttonText;
+
+        button.addEventListener(
+            "click",
+            event => {
+                event.preventDefault();
+                event.stopPropagation();
+
+                const editor =
+                    findBestEditor();
+
+                if (!editor) {
+                    warn(
+                        "Floating button clicked, but no editor was found."
+                    );
+
+                    alert(
+                        "GAS: No GitHub comment editor found.\n\n" +
+                        "Open a comment box first."
+                    );
+
+                    return;
+                }
+
+                state.activeEditor = editor;
+
+                openPicker(
+                    button,
+                    editor
+                );
+            }
+        );
+
+        document.body.appendChild(button);
+
+        state.floatingButton =
+            button;
+
+        log(
+            "Floating fallback button created."
+        );
+    }
+
+    // ============================================================
+    // PICKER
+    // ============================================================
+
+    function createPicker() {
+        if (state.picker) {
+            return state.picker;
+        }
+
+        const picker =
+            document.createElement("div");
+
+        picker.className =
+            "gas-picker";
+
+        picker.dataset.gasPicker =
+            "true";
+
+        picker.innerHTML = `
+            <div class="gas-picker-header">
+                <div class="gas-picker-title">
+                    GAS Custom Emoji
+                </div>
+
+                <button
+                    type="button"
+                    class="gas-picker-close"
+                    aria-label="Close"
+                >
+                    ×
+                </button>
+            </div>
+
+            <div style="padding: 0 10px 10px;">
+                <input
+                    class="gas-picker-search"
+                    type="search"
+                    placeholder="Search emoji..."
+                    autocomplete="off"
+                    spellcheck="false"
+                >
+            </div>
+
+            <div class="gas-picker-grid"></div>
+        `;
 
         document.body.appendChild(picker);
 
-        /*
-         * Position picker below the GAS button.
-         */
-        const buttonRect =
-            button.getBoundingClientRect();
+        state.picker =
+            picker;
 
-        const pickerRect =
-            picker.getBoundingClientRect();
-
-        let left = buttonRect.left;
-        let top = buttonRect.bottom + 6;
-
-        if (
-            left + pickerRect.width >
-            window.innerWidth - 10
-        ) {
-            left =
-                window.innerWidth -
-                pickerRect.width -
-                10;
-        }
-
-        if (
-            top + pickerRect.height >
-            window.innerHeight - 10
-        ) {
-            top =
-                buttonRect.top -
-                pickerRect.height -
-                6;
-        }
-
-        picker.style.left =
-            `${Math.max(10, left)}px`;
-
-        picker.style.top =
-            `${Math.max(10, top)}px`;
-
-        /*
-         * Outside click closes picker.
-         */
-        setTimeout(() => {
-            const closeHandler = event => {
-                if (
-                    !picker.contains(event.target) &&
-                    event.target !== button &&
-                    !button.contains(event.target)
-                ) {
-                    picker.remove();
-
-                    document.removeEventListener(
-                        'mousedown',
-                        closeHandler,
-                        true
-                    );
-                }
-            };
-
-            document.addEventListener(
-                'mousedown',
-                closeHandler,
-                true
+        picker
+            .querySelector(".gas-picker-close")
+            .addEventListener(
+                "click",
+                () => closePicker()
             );
-        }, 0);
-    }
 
-    function createGasPicker(
-        toolbar,
-        button,
-        textarea
-    ) {
-        const picker =
-            document.createElement('div');
-
-        picker.className =
-            'gas-picker';
-
-        /*
-         * Prevent GitHub from interpreting picker clicks
-         * as toolbar interactions.
-         */
-        picker.addEventListener(
-            'mousedown',
-            event => {
-                event.stopPropagation();
-            }
-        );
-
-        /*
-         * --------------------------------------------------------
-         * Header
-         * --------------------------------------------------------
-         */
-
-        const header =
-            document.createElement('div');
-
-        header.className =
-            'gas-picker-header';
-
-        const title =
-            document.createElement('strong');
-
-        title.textContent =
-            'Giggles&Shit';
-
-        header.appendChild(title);
-
-        picker.appendChild(header);
-
-        /*
-         * --------------------------------------------------------
-         * Grid
-         * --------------------------------------------------------
-         */
-
-        const grid =
-            document.createElement('div');
-
-        grid.className =
-            'gas-picker-grid';
-
-        if (gas.length === 0) {
-            const empty =
-                document.createElement('div');
-
-            empty.className =
-                'gas-picker-empty';
-
-            empty.textContent =
-                'No GAS entries yet.';
-
-            grid.appendChild(empty);
-        }
-
-        for (let index = 0; index < gas.length; index++) {
-            const entry = gas[index];
-
-            const item =
-                document.createElement('button');
-
-            item.type = 'button';
-
-            item.className =
-                'gas-picker-item';
-
-            item.title =
-                `:${entry.name}:`;
-
-            const image =
-                document.createElement('img');
-
-            image.src =
-                entry.url;
-
-            image.alt =
-                entry.name;
-
-            image.loading =
-                'lazy';
-
-            image.draggable =
-                false;
-
-            item.appendChild(image);
-
-            /*
-             * Clicking inserts the trigger into the textarea.
-             * The normal GAS live replacer then converts it
-             * into the image immediately.
-             */
-            item.addEventListener(
-                'click',
-                () => {
-                    insertGasText(
-                        textarea,
-                        `:${entry.name}:`
+        picker
+            .querySelector(".gas-picker-search")
+            .addEventListener(
+                "input",
+                event => {
+                    renderEmojiGrid(
+                        event.target.value
                     );
-
-                    picker.remove();
                 }
             );
 
-            grid.appendChild(item);
-        }
-
-        picker.appendChild(grid);
-
-        /*
-         * --------------------------------------------------------
-         * Add GAS
-         * --------------------------------------------------------
-         */
-
-        const addButton =
-            document.createElement('button');
-
-        addButton.type =
-            'button';
-
-        addButton.className =
-            'gas-add-button';
-
-        addButton.textContent =
-            '+ Add GAS';
-
-        addButton.addEventListener(
-            'click',
-            () => {
-                const name =
-                    prompt(
-                        'GAS trigger name:',
-                        'crine'
-                    );
-
-                if (!name) {
-                    return;
-                }
-
-                const cleanName =
-                    name
-                        .trim()
-                        .replace(/^:+|:+$/g, '');
-
-                if (!cleanName) {
-                    return;
-                }
-
-                const url =
-                    prompt(
-                        'GAS image URL:'
-                    );
-
-                if (!url) {
-                    return;
-                }
-
-                const cleanUrl =
-                    url.trim();
-
-                try {
-                    new URL(cleanUrl);
-                } catch {
-                    alert(
-                        'That is not a valid URL.'
-                    );
-
-                    return;
-                }
-
-                /*
-                 * Avoid duplicate names.
-                 */
-                const exists =
-                    gas.some(entry =>
-                        entry.name.toLowerCase() ===
-                        cleanName.toLowerCase()
-                    );
-
-                if (exists) {
-                    alert(
-                        `GAS ":${cleanName}:" already exists.`
-                    );
-
-                    return;
-                }
-
-                gas.push({
-                    name: cleanName,
-                    url: cleanUrl
-                });
-
-                saveGas();
-
-                picker.remove();
-
-                /*
-                 * Re-open to show the new GAS entry.
-                 */
-                toggleGasPicker(
-                    toolbar,
-                    button,
-                    textarea
-                );
-            }
-        );
-
-        picker.appendChild(
-            addButton
-        );
-
-        /*
-         * --------------------------------------------------------
-         * Remove GAS
-         * --------------------------------------------------------
-         */
-
-        const removeButton =
-            document.createElement('button');
-
-        removeButton.type =
-            'button';
-
-        removeButton.className =
-            'gas-remove-button';
-
-        removeButton.textContent =
-            '− Remove GAS';
-
-        removeButton.addEventListener(
-            'click',
-            () => {
-                if (gas.length === 0) {
-                    return;
-                }
-
-                const names =
-                    gas
-                        .map(entry =>
-                            `:${entry.name}:`
-                        )
-                        .join('\n');
-
-                const selected =
-                    prompt(
-                        `Enter the GAS trigger to remove:\n\n${names}`
-                    );
-
-                if (!selected) {
-                    return;
-                }
-
-                const cleanSelected =
-                    selected
-                        .trim()
-                        .replace(/^:+|:+$/g, '')
-                        .toLowerCase();
-
-                const index =
-                    gas.findIndex(
-                        entry =>
-                            entry.name.toLowerCase() ===
-                            cleanSelected
-                    );
-
-                if (index === -1) {
-                    alert(
-                        'That GAS entry was not found.'
-                    );
-
-                    return;
-                }
-
-                gas.splice(
-                    index,
-                    1
-                );
-
-                saveGas();
-
-                picker.remove();
-
-                toggleGasPicker(
-                    toolbar,
-                    button,
-                    textarea
-                );
-            }
-        );
-
-        picker.appendChild(
-            removeButton
-        );
+        renderEmojiGrid();
 
         return picker;
     }
 
-    /*
-     * ============================================================
-     * INSERT TEXT
-     * ============================================================
-     */
+    function renderEmojiGrid(search = "") {
+        const picker =
+            state.picker;
 
-    function insertGasText(
+        if (!picker) {
+            return;
+        }
+
+        const grid =
+            picker.querySelector(
+                ".gas-picker-grid"
+            );
+
+        const query =
+            search
+                .trim()
+                .toLowerCase();
+
+        const emojis =
+            CONFIG.emojis.filter(item => {
+                if (!query) {
+                    return true;
+                }
+
+                return (
+                    item.name
+                        .toLowerCase()
+                        .includes(query) ||
+                    item.label
+                        .toLowerCase()
+                        .includes(query)
+                );
+            });
+
+        grid.replaceChildren();
+
+        if (!emojis.length) {
+            const empty =
+                document.createElement("div");
+
+            empty.className =
+                "gas-picker-empty";
+
+            empty.textContent =
+                "No emoji found.";
+
+            grid.appendChild(empty);
+
+            return;
+        }
+
+        for (const item of emojis) {
+            const button =
+                document.createElement("button");
+
+            button.type = "button";
+
+            button.className =
+                "gas-emoji-item";
+
+            button.dataset.emojiName =
+                item.name;
+
+            button.title =
+                `:${item.name}:`;
+
+            button.innerHTML = `
+                <span class="gas-emoji-icon">
+                    ${escapeHtml(item.emoji)}
+                </span>
+
+                <span class="gas-emoji-name">
+                    :${escapeHtml(item.name)}:
+                </span>
+            `;
+
+            button.addEventListener(
+                "mousedown",
+                event => {
+                    event.preventDefault();
+                }
+            );
+
+            button.addEventListener(
+                "click",
+                event => {
+                    event.preventDefault();
+                    event.stopPropagation();
+
+                    insertEmoji(
+                        item.name,
+                        state.activeEditor
+                    );
+                }
+            );
+
+            grid.appendChild(button);
+        }
+    }
+
+    function escapeHtml(value) {
+        return String(value)
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#039;");
+    }
+
+    // ============================================================
+    // PICKER POSITIONING
+    // ============================================================
+
+    function positionPicker(button) {
+        const picker =
+            state.picker;
+
+        if (!picker || !button) {
+            return;
+        }
+
+        const rect =
+            button.getBoundingClientRect();
+
+        const pickerWidth =
+            picker.offsetWidth || 340;
+
+        const pickerHeight =
+            picker.offsetHeight || 420;
+
+        let left =
+            rect.left;
+
+        let top =
+            rect.bottom + 8;
+
+        if (
+            left + pickerWidth >
+            window.innerWidth - 8
+        ) {
+            left =
+                window.innerWidth -
+                pickerWidth -
+                8;
+        }
+
+        if (
+            left < 8
+        ) {
+            left = 8;
+        }
+
+        if (
+            top + pickerHeight >
+            window.innerHeight - 8
+        ) {
+            top =
+                rect.top -
+                pickerHeight -
+                8;
+        }
+
+        if (
+            top < 8
+        ) {
+            top = 8;
+        }
+
+        picker.style.left =
+            `${left}px`;
+
+        picker.style.top =
+            `${top}px`;
+    }
+
+    function openPicker(button, editor) {
+        const picker =
+            createPicker();
+
+        state.activeEditor =
+            editor;
+
+        picker.style.display =
+            "flex";
+
+        positionPicker(button);
+
+        const search =
+            picker.querySelector(
+                ".gas-picker-search"
+            );
+
+        search.value = "";
+
+        renderEmojiGrid();
+
+        log(
+            "Picker opened.",
+            {
+                editor:
+                    describeEditor(editor),
+                button
+            }
+        );
+
+        setTimeout(() => {
+            search.focus();
+        }, 0);
+    }
+
+    function closePicker() {
+        if (!state.picker) {
+            return;
+        }
+
+        state.picker.style.display =
+            "none";
+
+        log("Picker closed.");
+    }
+
+    // ============================================================
+    // INSERTION
+    // ============================================================
+
+    function insertEmoji(name, editor) {
+        if (!editor) {
+            warn(
+                "Cannot insert emoji: no editor."
+            );
+
+            return;
+        }
+
+        const text =
+            `:${name}:`;
+
+        log(
+            `Inserting ${text}`,
+            describeEditor(editor)
+        );
+
+        // --------------------------------------------------------
+        // TEXTAREA
+        // --------------------------------------------------------
+
+        if (
+            editor.tagName === "TEXTAREA" ||
+            editor instanceof HTMLInputElement
+        ) {
+            insertIntoTextarea(
+                editor,
+                text
+            );
+
+            closePicker();
+
+            return;
+        }
+
+        // --------------------------------------------------------
+        // CONTENTEDITABLE
+        // --------------------------------------------------------
+
+        if (
+            editor.isContentEditable
+        ) {
+            insertIntoContentEditable(
+                editor,
+                text
+            );
+
+            closePicker();
+
+            return;
+        }
+
+        warn(
+            "Unknown editor type:",
+            editor
+        );
+    }
+
+    function insertIntoTextarea(
         textarea,
         text
     ) {
@@ -852,24 +1362,13 @@
             textarea.selectionEnd ??
             textarea.value.length;
 
-        const before =
-            textarea.value.slice(
-                0,
-                start
-            );
-
-        const after =
-            textarea.value.slice(
-                end
-            );
-
-        const newValue =
-            before +
-            text +
-            after;
+        const oldValue =
+            textarea.value;
 
         textarea.value =
-            newValue;
+            oldValue.slice(0, start) +
+            text +
+            oldValue.slice(end);
 
         const cursor =
             start + text.length;
@@ -880,277 +1379,550 @@
         textarea.selectionEnd =
             cursor;
 
+        // React/GitHub needs an input event.
+        textarea.dispatchEvent(
+            new InputEvent(
+                "input",
+                {
+                    bubbles: true,
+                    inputType:
+                        "insertText",
+                    data: text
+                }
+            )
+        );
+
         textarea.dispatchEvent(
             new Event(
-                'input',
+                "change",
                 {
                     bubbles: true
                 }
             )
         );
+
+        log(
+            "Inserted into textarea."
+        );
     }
 
-    /*
-     * ============================================================
-     * STYLES
-     * ============================================================
-     */
+    function insertIntoContentEditable(
+        editor,
+        text
+    ) {
+        editor.focus();
 
-    GM_addStyle(`
-        .gas-toolbar-button {
-            position: relative;
-        }
+        const selection =
+            window.getSelection();
 
-        .gas-toolbar-button img {
-            width: 16px;
-            height: 16px;
+        if (
+            selection &&
+            selection.rangeCount > 0
+        ) {
+            const range =
+                selection.getRangeAt(0);
 
-            object-fit: contain;
+            if (
+                editor.contains(
+                    range.commonAncestorContainer
+                )
+            ) {
+                range.deleteContents();
 
-            pointer-events: none;
-        }
+                const node =
+                    document.createTextNode(
+                        text
+                    );
 
-        .gas-picker {
-            position: fixed;
+                range.insertNode(node);
 
-            z-index: 999999;
+                range.setStartAfter(node);
+                range.collapse(true);
 
-            width: 350px;
+                selection.removeAllRanges();
+                selection.addRange(range);
 
-            max-height: 430px;
-
-            display: flex;
-
-            flex-direction: column;
-
-            background:
-                var(
-                    --bgColor-default,
-                    #ffffff
+                editor.dispatchEvent(
+                    new InputEvent(
+                        "input",
+                        {
+                            bubbles: true,
+                            inputType:
+                                "insertText",
+                            data: text
+                        }
+                    )
                 );
 
-            border:
-                1px solid
-                var(
-                    --borderColor-default,
-                    #d0d7de
+                log(
+                    "Inserted into contenteditable using Selection."
                 );
 
-            border-radius: 8px;
-
-            box-shadow:
-                0 8px 24px
-                rgba(140,149,159,.2);
-
-            overflow: hidden;
-
-            font-family:
-                -apple-system,
-                BlinkMacSystemFont,
-                "Segoe UI",
-                sans-serif;
-        }
-
-        .gas-picker-header {
-            padding: 10px;
-
-            border-bottom:
-                1px solid
-                var(
-                    --borderColor-muted,
-                    #d8dee4
-                );
-
-            color:
-                var(
-                    --fgColor-default,
-                    #1f2328
-                );
-
-            font-size: 13px;
-        }
-
-        .gas-picker-grid {
-            display: grid;
-
-            grid-template-columns:
-                repeat(6, 1fr);
-
-            gap: 5px;
-
-            padding: 10px;
-
-            max-height: 320px;
-
-            overflow-y: auto;
-        }
-
-        .gas-picker-item {
-            appearance: none;
-
-            display: flex;
-
-            align-items: center;
-            justify-content: center;
-
-            width: 100%;
-
-            aspect-ratio: 1;
-
-            padding: 5px;
-
-            border: 0;
-
-            border-radius: 6px;
-
-            background: transparent;
-
-            cursor: pointer;
-        }
-
-        .gas-picker-item:hover {
-            background:
-                var(
-                    --bgColor-neutral-muted,
-                    #f6f8fa
-                );
-        }
-
-        .gas-picker-item img {
-            width: 42px;
-            height: 42px;
-
-            object-fit: contain;
-
-            pointer-events: none;
-        }
-
-        .gas-picker-empty {
-            grid-column:
-                1 / -1;
-
-            padding: 30px 10px;
-
-            text-align: center;
-
-            color:
-                var(
-                    --fgColor-muted,
-                    #656d76
-                );
-
-            font-size: 13px;
-        }
-
-        .gas-add-button,
-        .gas-remove-button {
-            appearance: none;
-
-            width: 100%;
-
-            padding: 8px;
-
-            border: 0;
-
-            border-top:
-                1px solid
-                var(
-                    --borderColor-muted,
-                    #d8dee4
-                );
-
-            background: transparent;
-
-            color:
-                var(
-                    --fgColor-default,
-                    #1f2328
-                );
-
-            cursor: pointer;
-
-            font-size: 12px;
-        }
-
-        .gas-add-button:hover,
-        .gas-remove-button:hover {
-            background:
-                var(
-                    --bgColor-neutral-muted,
-                    #f6f8fa
-                );
-        }
-
-        .gas-remove-button {
-            color:
-                var(
-                    --fgColor-danger,
-                    #cf222e
-                );
-        }
-
-        @media (prefers-color-scheme: dark) {
-            .gas-picker {
-                background: #0d1117;
-
-                border-color:
-                    #30363d;
+                return;
             }
         }
-    `);
 
-    /*
-     * ============================================================
-     * GITHUB TOOLBAR SCANNING
-     * ============================================================
-     *
-     * GitHub is an SPA, so comment editors can appear later.
-     */
+        // Fallback.
+        document.execCommand(
+            "insertText",
+            false,
+            text
+        );
 
-    function scanGasToolbars() {
-        document
-            .querySelectorAll(
-                'markdown-toolbar, [role="toolbar"]'
-            )
-            .forEach(
-                toolbar => {
-                    createGasToolbarButton(
-                        toolbar
-                    );
+        editor.dispatchEvent(
+            new InputEvent(
+                "input",
+                {
+                    bubbles: true,
+                    inputType:
+                        "insertText",
+                    data: text
                 }
+            )
+        );
+
+        log(
+            "Inserted into contenteditable using execCommand."
+        );
+    }
+
+    // ============================================================
+    // GLOBAL CLICK HANDLER
+    // ============================================================
+
+    function installGlobalClickHandler() {
+        document.addEventListener(
+            "mousedown",
+            event => {
+                const target =
+                    event.target;
+
+                // Close picker if clicking outside.
+                if (
+                    state.picker &&
+                    state.picker.style.display !==
+                        "none"
+                ) {
+                    const insidePicker =
+                        state.picker.contains(
+                            target
+                        );
+
+                    const gasButton =
+                        target.closest?.(
+                            ".gas-emoji-button"
+                        );
+
+                    if (
+                        !insidePicker &&
+                        !gasButton
+                    ) {
+                        closePicker();
+                    }
+                }
+            },
+            true
+        );
+    }
+
+    // ============================================================
+    // TRACK FOCUS
+    // ============================================================
+
+    function installFocusTracking() {
+        document.addEventListener(
+            "focusin",
+            event => {
+                const editor =
+                    findEditorFromElement(
+                        event.target
+                    );
+
+                if (!editor) {
+                    return;
+                }
+
+                state.activeEditor =
+                    editor;
+
+                log(
+                    "Active editor changed:",
+                    describeEditor(editor)
+                );
+            },
+            true
+        );
+    }
+
+    // ============================================================
+    // SCAN + INJECT
+    // ============================================================
+
+    function performScan() {
+        const editors =
+            scanEditors();
+
+        let injected =
+            0;
+
+        for (const editor of editors) {
+            if (
+                injectButton(editor)
+            ) {
+                injected++;
+            }
+        }
+
+        if (
+            editors.length > 0
+        ) {
+            log(
+                `Scan result: ${editors.length} editor(s), ${injected} button(s) handled.`
+            );
+        } else {
+            log(
+                "No editors currently visible."
+            );
+        }
+
+        // Always keep fallback available.
+        if (
+            CONFIG.enableFloatingFallback
+        ) {
+            createFloatingButton();
+        }
+    }
+
+    function scheduleScan() {
+        clearTimeout(
+            state.scanTimer
+        );
+
+        state.scanTimer =
+            setTimeout(
+                performScan,
+                250
             );
     }
 
-    const gasObserver =
-        new MutationObserver(() => {
-            scanGasToolbars();
-        });
+    // ============================================================
+    // MUTATION OBSERVER
+    // ============================================================
 
-    function startGas() {
-        scanGasToolbars();
+    function installMutationObserver() {
+        const observer =
+            new MutationObserver(
+                mutations => {
+                    let relevant = false;
 
-        gasObserver.observe(
-            document.documentElement,
+                    for (
+                        const mutation
+                        of mutations
+                    ) {
+                        if (
+                            mutation.type ===
+                            "childList"
+                        ) {
+                            relevant = true;
+                            break;
+                        }
+                    }
+
+                    if (relevant) {
+                        scheduleScan();
+                    }
+                }
+            );
+
+        observer.observe(
+            document.body,
             {
                 childList: true,
                 subtree: true
             }
         );
+
+        log(
+            "MutationObserver active."
+        );
     }
+
+    // ============================================================
+    // DEBUG COMMANDS
+    // ============================================================
+
+    function exposeDebugAPI() {
+        window.GAS = {
+            scan() {
+                log(
+                    "Manual scan requested."
+                );
+
+                performScan();
+            },
+
+            editors() {
+                const editors =
+                    scanEditors();
+
+                console.table(
+                    editors.map(
+                        describeEditor
+                    )
+                );
+
+                return editors;
+            },
+
+            buttons() {
+                const buttons =
+                    [
+                        ...document.querySelectorAll(
+                            ".gas-emoji-button"
+                        )
+                    ];
+
+                log(
+                    `Found ${buttons.length} GAS button(s).`
+                );
+
+                buttons.forEach(
+                    (button, index) => {
+                        log(
+                            `GAS button #${index}:`,
+                            button
+                        );
+                    }
+                );
+
+                return buttons;
+            },
+
+            picker() {
+                const picker =
+                    createPicker();
+
+                picker.style.display =
+                    "flex";
+
+                positionPicker(
+                    state.floatingButton ||
+                    document.body
+                );
+
+                return picker;
+            },
+
+            testButton() {
+                const editor =
+                    findBestEditor();
+
+                if (!editor) {
+                    warn(
+                        "testButton(): no editor found."
+                    );
+
+                    return null;
+                }
+
+                const button =
+                    createEmojiButton(
+                        editor
+                    );
+
+                button.style.position =
+                    "fixed";
+
+                button.style.left =
+                    "50%";
+
+                button.style.top =
+                    "100px";
+
+                button.style.zIndex =
+                    "2147483647";
+
+                document.body.appendChild(
+                    button
+                );
+
+                log(
+                    "TEST BUTTON CREATED.",
+                    button
+                );
+
+                return button;
+            },
+
+            config: CONFIG,
+
+            state
+        };
+
+        log(
+            "Debug API available as window.GAS"
+        );
+
+        log(
+            "Try: GAS.scan()"
+        );
+
+        log(
+            "Try: GAS.editors()"
+        );
+
+        log(
+            "Try: GAS.buttons()"
+        );
+
+        log(
+            "Try: GAS.testButton()"
+        );
+    }
+
+    // ============================================================
+    // DEBUG DOM DUMP
+    // ============================================================
+
+    function debugPageStructure() {
+        log(
+            "========== PAGE DEBUG =========="
+        );
+
+        log(
+            "URL:",
+            location.href
+        );
+
+        log(
+            "Title:",
+            document.title
+        );
+
+        log(
+            "Textareas:",
+            document.querySelectorAll(
+                "textarea"
+            ).length
+        );
+
+        log(
+            "Contenteditables:",
+            document.querySelectorAll(
+                '[contenteditable="true"]'
+            ).length
+        );
+
+        log(
+            "Buttons:",
+            document.querySelectorAll(
+                "button"
+            ).length
+        );
+
+        log(
+            "Role=toolbar:",
+            document.querySelectorAll(
+                "[role='toolbar']"
+            ).length
+        );
+
+        log(
+            "GAS buttons:",
+            document.querySelectorAll(
+                ".gas-emoji-button"
+            ).length
+        );
+
+        log(
+            "================================"
+        );
+    }
+
+    // ============================================================
+    // INITIALIZATION
+    // ============================================================
+
+    function start() {
+        if (state.initialized) {
+            return;
+        }
+
+        state.initialized =
+            true;
+
+        log(
+            "=============================="
+        );
+
+        log(
+            "Starting GAS v2.0.0..."
+        );
+
+        log(
+            "URL:",
+            location.href
+        );
+
+        log(
+            "=============================="
+        );
+
+        installStyles();
+
+        exposeDebugAPI();
+
+        installGlobalClickHandler();
+
+        installFocusTracking();
+
+        debugPageStructure();
+
+        // Initial scan.
+        performScan();
+
+        // GitHub is a SPA, so keep scanning.
+        installMutationObserver();
+
+        // Additional delayed scans because GitHub often
+        // hydrates React components after page load.
+        setTimeout(
+            performScan,
+            500
+        );
+
+        setTimeout(
+            performScan,
+            1500
+        );
+
+        setTimeout(
+            performScan,
+            3000
+        );
+
+        log(
+            "GAS initialization complete."
+        );
+    }
+
+    // ============================================================
+    // START
+    // ============================================================
 
     if (
         document.readyState ===
-        'loading'
+        "loading"
     ) {
         document.addEventListener(
-            'DOMContentLoaded',
-            startGas,
+            "DOMContentLoaded",
+            start,
             {
                 once: true
             }
         );
     } else {
-        startGas();
+        start();
     }
 
 })();
