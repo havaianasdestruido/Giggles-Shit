@@ -12,7 +12,8 @@ description: Frequently asked questions about Giggles&Shit (GAS).
 
 <h2>Is this safe? What permissions does it need?</h2>
 <p>GAS runs with <code>@grant none</code> — literally zero special permissions. It only works on
-<code>github.com</code> (<code>@match https://github.com/*</code>) and makes no network requests of
+<code>github.com</code> and <code>gist.github.com</code> (<code>@match https://github.com/*</code>
+and <code>@match https://gist.github.com/*</code>) and makes no network requests of
 its own: the script itself performs no API calls, while the emoji images in your comments are
 loaded by the browser from <code>raw.githubusercontent.com</code> when picking and rendering.
 There's also no telemetry. The entire source is one readable file you can audit:
@@ -20,9 +21,8 @@ There's also no telemetry. The entire source is one readable file you can audit:
 
 <h2>Where does the button show up?</h2>
 <p>In the formatting toolbar of GitHub's markdown editors: issue &amp; PR descriptions, comments,
-PR reviews, replies, the web file editor — anywhere github.com renders a
-<code>[role="toolbar"]</code> with formatting actions. (gist.github.com is a separate host and is
-not covered — see the next question.)</p>
+PR reviews, replies, the web file editor, and gist comments — anywhere github.com or
+gist.github.com renders a <code>[role="toolbar"]</code> with formatting actions.</p>
 
 <h2>Can I use my own memes?</h2>
 <p>Yes. Edit the <code>DEFAULT_GAS</code> array in the script — each entry is just
@@ -37,9 +37,10 @@ joke, small enough to stay inline with text. Want bigger? Edit
 <a href="{{ '/docs/reference/api/' | relative_url }}#createimagehtml">function reference</a>.</p>
 
 <h2>Does it work on gist.github.com?</h2>
-<p>Not currently — the <code>@match</code> pattern covers <code>github.com</code> only. It's a
-one-line change if you want it locally; see the
-<a href="{{ '/docs/reference/metadata/' | relative_url }}">metadata reference</a>.</p>
+<p>Yes. The <code>@match</code> pattern covers both <code>github.com</code> and
+<code>gist.github.com</code>, so the button also shows up in the formatting toolbar of gist
+comments. See the
+<a href="{{ '/docs/reference/metadata/' | relative_url }}">metadata reference</a> for details.</p>
 
 <h2>The button disappeared after I navigated. Broken?</h2>
 <p>Probably not: open the console and type <code>GAS.scan()</code>. GitHub's Turbo navigation

@@ -21,7 +21,7 @@ hacking on the script) can probe its live state from DevTools. The startup banne
 
 | Member | Type | Description |
 |---|---|---|
-| `GAS.version()` | `function → string` | Returns the current script version (`'2.2.0'`). See the note below — the exposed shape is a **function**, not a string property. |
+| `GAS.version()` | `function → string` | Returns the current script version (`'2.3.0'`). See the note below — the exposed shape is a **function**, not a string property. |
 | `GAS.gas()` | `function → Array<{name, url}>` | Copy of the `DEFAULT_GAS` emoji catalog. |
 | `GAS.scan()` | `function → HTMLElement[]` | Forces an immediate editor scan + button injection (bypasses the 100 ms debounce). Returns detected editors. |
 | `GAS.editors()` | `function → HTMLElement[]` | Lists candidate editors; also prints a `console.table` (index, tag, id, className, placeholder, ariaLabel, `processed`, `visible`). |
@@ -40,7 +40,7 @@ GAS.scan();
 **Screenshot-ready state dump for a bug report:**
 
 ```js
-GAS.version();    // '2.2.0'
+GAS.version();    // '2.3.0'
 GAS.editors();    // table of candidate editors
 GAS.buttons();    // table of injected buttons
 ```

@@ -1,10 +1,11 @@
 // ==UserScript==
 // @name         Giggles&Shit (GAS)
 // @namespace    https://github.com/havaianasdestruido/Giggles-Shit
-// @version      2.2.0
+// @version      2.3.0
 // @description  Giggles&Shit emoji/image picker for GitHub
 // @author       havaianasdestruido
 // @match        https://github.com/*
+// @match        https://gist.github.com/*
 // @icon         https://raw.githubusercontent.com/havaianasdestruido/Giggles-Shit/refs/heads/main/res/img/trollge.jpg
 // @grant        none
 // @run-at       document-idle
@@ -17,7 +18,7 @@
     // CONFIG
     // ============================================================
 
-    const GAS_VERSION = '2.2.0';
+    const GAS_VERSION = '2.3.0';
 
     const REPO_URL =
         'https://github.com/havaianasdestruido/Giggles-Shit/issues/new';
@@ -527,15 +528,35 @@
                     'name'
                 ) || '';
 
-            return (
-                /description/i.test(
+            if (
+                /description|comment/i.test(
                     placeholder
                 ) ||
-                /markdown/i.test(
+                /markdown|comment/i.test(
                     ariaLabel
                 ) ||
-                /description/i.test(
+                /description|comment|body/i.test(
                     name
+                )
+            ) {
+                return true;
+            }
+
+            // Fallback for hosts whose markup doesn't match the
+            // heuristics above (e.g. gist.github.com comment boxes
+            // use different attribute naming than github.com). Comment
+            // editors are always real <form> elements, so scope the
+            // toolbar search to the enclosing form — this catches
+            // unfamiliar attribute naming without risking a match
+            // against an unrelated toolbar elsewhere on the page.
+            const formContainer =
+                element.closest(
+                    'form'
+                );
+
+            return Boolean(
+                formContainer?.querySelector(
+                    '[role="toolbar"][aria-label*="Formatting"]'
                 )
             );
         }

@@ -45,7 +45,7 @@ request reaches GitHub):</p>
 
 <h2>Updating &amp; uninstalling</h2>
 <p>If you installed through the link above, your manager keeps the install URL as the update source
-and will fetch new releases when <code>@version</code> (currently <strong>2.2.0</strong>) increases
+and will fetch new releases when <code>@version</code> (currently <strong>2.3.0</strong>) increases
 (the script header declares no explicit <code>@updateURL</code>, so the install URL is used).
 Copies that were pasted in manually have no tracked update source and do
 <strong>not</strong> auto-update — repeat Step 2 to update them. To uninstall: remove the script

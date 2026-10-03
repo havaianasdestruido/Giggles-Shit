@@ -9,9 +9,16 @@ sidebar_position: 21
 Version numbers come from the `@version` userscript header (mirrored in code as `GAS_VERSION`)
 and drive the managers' auto-update checks.
 
-## 2.2.0 — current
+## 2.3.0 — current
 
-The version documented by this site. Highlights of the current codebase:
+- Added `gist.github.com` coverage: a second `@match` line, plus an `isEditor` fallback that
+  detects a real formatting toolbar within a textarea's enclosing `<form>` for cases whose
+  `placeholder`/`aria-label`/`name` wording doesn't match github.com's conventions. The button now
+  shows up in gist comment forms too.
+
+## 2.2.0
+
+Highlights of the 2.2.0 codebase:
 
 - Five bundled emoji (`bulleh`, `crine`, `rose`, `skull`, `trollge`) served from the repo's
   `res/img/` directory.
@@ -35,5 +42,4 @@ Non-binding list of natural directions — contributions welcome:
 
 - more default emoji from the [media library](./reference/media-library.md) (the GIFs are sitting
   right there),
-- gist.github.com coverage (one `@match` line, see [metadata](./reference/metadata.md)),
 - settings UI for user-managed emoji (would need a storage grant — trade-off vs `@grant none`).

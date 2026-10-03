@@ -50,7 +50,7 @@ if document.readyState === 'loading' ──► wait for DOMContentLoaded
         │ otherwise run immediately
         ▼
 init()  ── guard: state.initialized? → return
-        │  1. console banner  ("Starting GAS v2.2.0...", REPO_URL)
+        │  1. console banner  ("Starting GAS v2.3.0...", REPO_URL)
         │  2. installStyles() — inject all picker/button/toast CSS
         │  3. log debug-API hints (GAS.scan(), GAS.editors(), …)
         │  4. pageDebug() — dump URL/title/editor counts
