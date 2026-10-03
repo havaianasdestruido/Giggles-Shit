@@ -17,9 +17,17 @@ https://raw.githubusercontent.com/havaianasdestruido/Giggles-Shit/refs/heads/mai
 
 ## Bundled in `DEFAULT_GAS`
 
-These nine ship out of the box:
+These twelve ship out of the box:
 
 <div className="gas-emoji-grid">
+  <div className="gas-emoji-card">
+    <img src={require('@site/static/img/emojis/84.jpeg').default} alt="84" />
+    <code>84</code>
+  </div>
+  <div className="gas-emoji-card">
+    <img src={require('@site/static/img/emojis/boo.gif').default} alt="boo" />
+    <code>boo</code>
+  </div>
   <div className="gas-emoji-card">
     <img src={require('@site/static/img/emojis/bulleh.jpg').default} alt="bulleh" />
     <code>bulleh</code>
@@ -27,6 +35,10 @@ These nine ship out of the box:
   <div className="gas-emoji-card">
     <img src={require('@site/static/img/emojis/crine.jpg').default} alt="crine" />
     <code>crine</code>
+  </div>
+  <div className="gas-emoji-card">
+    <img src={require('@site/static/img/emojis/fire.jpeg').default} alt="fire" />
+    <code>fire</code>
   </div>
   <div className="gas-emoji-card">
     <img src={require('@site/static/img/emojis/hmm.webp').default} alt="hmm" />
@@ -58,9 +70,9 @@ These nine ship out of the box:
   </div>
 </div>
 
-`res/img/bulleh.jpg` · `res/img/crine.jpg` · `res/img/hmm.webp` · `res/img/rose.jpg` ·
-`res/img/skull.jpg` · `res/img/trollge.jpg` · `res/img/wet.webp` · `res/img/woah.webp` ·
-`res/img/yeah.webp`
+`res/img/84.jpeg` · `res/img/boo.gif` · `res/img/bulleh.jpg` · `res/img/crine.jpg` ·
+`res/img/fire.jpeg` · `res/img/hmm.webp` · `res/img/rose.jpg` · `res/img/skull.jpg` ·
+`res/img/trollge.jpg` · `res/img/wet.webp` · `res/img/woah.webp` · `res/img/yeah.webp`
 
 :::caution
 `trollge` is load-bearing: the toolbar button icon is the entry named `trollge`. Keep it (or keep

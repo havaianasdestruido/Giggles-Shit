@@ -6,7 +6,7 @@ sidebar_position: 2
 
 # Adding custom emoji
 
-GAS ships with nine bundled emoji, but the source list is intentionally trivial to extend.
+GAS ships with twelve bundled emoji, but the source list is intentionally trivial to extend.
 Everything flows from one array in
 [`gas.userscript.js`](https://github.com/havaianasdestruido/Giggles-Shit/blob/main/gas.userscript.js):
 
@@ -20,7 +20,7 @@ const DEFAULT_GAS = [
         name: 'bulleh',
         url: 'https://raw.githubusercontent.com/havaianasdestruido/Giggles-Shit/refs/heads/main/res/img/bulleh.jpg'
     },
-    // ... crine, hmm, rose, skull, trollge, wet, woah, yeah
+    // ... 84, boo, crine, fire, hmm, rose, skull, trollge, wet, woah, yeah
 ];
 ```
 
