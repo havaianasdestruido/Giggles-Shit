@@ -1,0 +1,22 @@
+# ---- Jekyll (primary website, root) ----
+_site/
+.sass-cache/
+.jekyll-cache/
+.jekyll-metadata
+vendor/bundle/
+
+# ---- Docusaurus (docs, ./website) ----
+website/node_modules/
+website/build/
+website/.docusaurus/
+website/.cache-loader/
+website/npm-debug.log*
+website/yarn-debug.log*
+website/yarn-error.log*
+
+# ---- Combined local preview ----
+.preview/
+
+# ---- misc ----
+.DS_Store
+Thumbs.db

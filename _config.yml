@@ -1,0 +1,44 @@
+# Jekyll configuration — PRIMARY website (served from the site root "/").
+#
+# The /docs subtree is built separately by Docusaurus (source in ./website)
+# and merged into _site/docs by the GitHub Actions workflow
+# (.github/workflows/pages.yml). Do not point Jekyll at the docs source.
+
+title: "Giggles&Shit"
+description: >-
+  Giggles&Shit (GAS) is a userscript that adds a custom emoji & image picker
+  to GitHub's markdown editors. Simple, zero-permission, meme-powered.
+url: "https://havaianasdestruido.github.io"
+
+# baseurl is intentionally empty for local development. The CI workflow
+# builds with --baseurl "/<repo-name>" for GitHub Pages.
+baseurl: ""
+
+markdown: kramdown
+permalink: pretty
+
+plugins:
+  - jekyll-seo-tag
+
+# Files/folders that belong to the repo or the docs pipeline, not the
+# Jekyll site itself.
+exclude:
+  - website
+  - scripts
+  - Gemfile
+  - Gemfile.lock
+  - vendor
+  - node_modules
+  - README.md
+  - LICENSE
+  - .imgbotconfig
+  - .gitignore
+  - res/img/readme.txt
+  - res/img/gifs/readme.txt
+  - screenshots/readme.txt
+
+defaults:
+  - scope:
+      path: ""
+    values:
+      layout: "default"

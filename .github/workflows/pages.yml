@@ -1,0 +1,96 @@
+# Builds and deploys the project website to GitHub Pages.
+#
+# Pipeline:
+#   1. Docusaurus (source: ./website)  →  website/build
+#   2. Jekyll    (source: repo root)   →  _site
+#   3. Merge: website/build is copied into _site/docs
+#      → Jekyll owns "/", Docusaurus owns "/docs"
+#   4. _site is deployed to GitHub Pages.
+#
+# Required repo setting (one-time): Settings → Pages → Source = "GitHub Actions".
+
+name: Build & deploy website
+
+on:
+  push:
+    branches: [main]
+  pull_request: # build-only validation on PRs (deploy is skipped)
+  workflow_dispatch:
+
+# Workflow-level: read-only. Deployment permissions (pages/id-token write)
+# are granted only to the deploy job below.
+permissions:
+  contents: read
+
+# PR builds and main-branch deployments get separate concurrency groups so a
+# PR run can never cancel a deployment (and vice versa); in-progress runs are
+# still cancelled within the same group.
+concurrency:
+  group: ${{ github.event_name == 'pull_request' && format('pages-pr-{0}', github.event.pull_request.number) || 'pages-main' }}
+  cancel-in-progress: true
+
+env:
+  # Docs live under /<repo>/docs/ in production; Jekyll under /<repo>/.
+  DOCS_BASE_URL: /${{ github.event.repository.name }}/docs/
+  # Absolute URL so Docusaurus treats main-site links as external.
+  MAIN_SITE_URL: https://havaianasdestruido.github.io/${{ github.event.repository.name }}/
+
+jobs:
+  build:
+    name: Build Jekyll + Docusaurus
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: website/package-lock.json
+
+      - name: Build Docusaurus docs
+        working-directory: website
+        run: |
+          npm ci
+          npm run build
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+
+      - name: Build Jekyll primary site
+        run: bundle exec jekyll build --baseurl "/${{ github.event.repository.name }}"
+
+      - name: Merge Docusaurus output into _site/docs
+        run: |
+          rm -rf _site/docs
+          cp -r website/build _site/docs
+          touch _site/.nojekyll
+
+      - name: Upload Pages artifact
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    name: Deploy to GitHub Pages
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    # Deployment permissions are scoped to this job only — the build job
+    # above stays contents:read-only.
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
