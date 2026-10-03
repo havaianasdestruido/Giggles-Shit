@@ -16,7 +16,7 @@ permalink: /
           meme, and it's in your comment — rendered inline at 20px.
         </p>
         <div class="hero-cta">
-          <a class="btn btn-primary" href="https://raw.githubusercontent.com/havaianasdestruido/Giggles-Shit/main/gas.userscript.js">Install the script</a>
+          <a class="btn btn-primary" href="https://raw.githubusercontent.com/havaianasdestruido/Giggles-Shit/main/gas.userscript.js#.user.js">Install the script</a>
           <a class="btn" href="{{ '/docs/' | relative_url }}">Read the docs →</a>
           <a class="btn btn-ghost" href="https://github.com/havaianasdestruido/Giggles-Shit">★ on GitHub</a>
         </div>

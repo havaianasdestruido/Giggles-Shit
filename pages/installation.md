@@ -25,8 +25,10 @@ description: Install the Giggles&Shit userscript in three steps with any userscr
 </table>
 
 <h2>Step 2 — install the script</h2>
-<p>Open the raw file and your manager will offer to install it:</p>
-<p><a class="btn btn-primary" href="https://raw.githubusercontent.com/havaianasdestruido/Giggles-Shit/main/gas.userscript.js">➡ Install Giggles&Shit</a></p>
+<p>Open the raw file and your manager will offer to install it (the
+<code>#.user.js</code> fragment makes manager detection reliable — it's stripped before the
+request reaches GitHub):</p>
+<p><a class="btn btn-primary" href="https://raw.githubusercontent.com/havaianasdestruido/Giggles-Shit/main/gas.userscript.js#.user.js">➡ Install Giggles&Shit</a></p>
 <div class="callout">
   <p><strong>Manual install:</strong> create a new script in your manager and paste the full
   contents of
@@ -42,9 +44,12 @@ description: Install the Giggles&Shit userscript in three steps with any userscr
 </ol>
 
 <h2>Updating &amp; uninstalling</h2>
-<p>Managers auto-update via the <code>@version</code> header (currently <strong>2.2.0</strong>). To
-uninstall: remove the script from your manager's dashboard. GAS stores nothing and leaves no
-residue.</p>
+<p>If you installed through the link above, your manager keeps the install URL as the update source
+and will fetch new releases when <code>@version</code> (currently <strong>2.2.0</strong>) increases
+(the script header declares no explicit <code>@updateURL</code>, so the install URL is used).
+Copies that were pasted in manually have no tracked update source and do
+<strong>not</strong> auto-update — repeat Step 2 to update them. To uninstall: remove the script
+from your manager's dashboard. GAS stores nothing and leaves no residue.</p>
 
 <div class="callout">
   <p><strong>Trouble?</strong> Check the <a href="{{ '/faq/' | relative_url }}">FAQ</a> or the

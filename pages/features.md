@@ -51,8 +51,11 @@ button. <a href="{{ '/docs/reference/architecture/' | relative_url }}">Architect
 </ul>
 
 <h2>🔒 Zero permissions, zero residue</h2>
-<p>The script runs with <code>@grant none</code>: no privileged APIs, no network calls of its own,
-no <code>localStorage</code>, no cookies, no telemetry. Uninstalling the script removes every trace.
+<p>The script runs with <code>@grant none</code>: no privileged APIs, no
+<code>localStorage</code>, no cookies, no telemetry. The script itself makes no network requests —
+the only traffic it triggers is your browser fetching emoji images from
+<code>raw.githubusercontent.com</code> (the same host GitHub's own avatars use). Uninstalling the
+script removes every trace.
 <a href="{{ '/docs/reference/metadata/' | relative_url }}">Userscript metadata →</a></p>
 
 <h2>🛠️ Built-in debug API</h2>

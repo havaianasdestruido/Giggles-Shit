@@ -16,7 +16,7 @@ Open an issue: **[github.com/havaianasdestruido/Giggles-Shit/issues/new](https:/
 A good bug report includes:
 
 - the full `[GAS]` console log from page load,
-- output of `GAS.version`, `GAS.editors()` and `GAS.buttons()` (see the
+- output of `GAS.version()`, `GAS.editors()` and `GAS.buttons()` (see the
   [debug API](./reference/debug-api.md)),
 - browser + userscript manager + versions,
 - the GitHub page URL and a screenshot of the editor area.

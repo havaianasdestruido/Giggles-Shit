@@ -21,8 +21,7 @@ hacking on the script) can probe its live state from DevTools. The startup banne
 
 | Member | Type | Description |
 |---|---|---|
-| `GAS.version` | `string` | Current script version (`'2.2.0'`). |
-| `GAS.version()` | `function → string` | Same value as a function call (both forms exist). |
+| `GAS.version()` | `function → string` | Returns the current script version (`'2.2.0'`). See the note below — the exposed shape is a **function**, not a string property. |
 | `GAS.gas()` | `function → Array<{name, url}>` | Copy of the `DEFAULT_GAS` emoji catalog. |
 | `GAS.scan()` | `function → HTMLElement[]` | Forces an immediate editor scan + button injection (bypasses the 100 ms debounce). Returns detected editors. |
 | `GAS.editors()` | `function → HTMLElement[]` | Lists candidate editors; also prints a `console.table` (index, tag, id, className, placeholder, ariaLabel, `processed`, `visible`). |
@@ -41,7 +40,7 @@ GAS.scan();
 **Screenshot-ready state dump for a bug report:**
 
 ```js
-GAS.version;      // '2.2.0'
+GAS.version();    // '2.2.0'
 GAS.editors();    // table of candidate editors
 GAS.buttons();    // table of injected buttons
 ```
@@ -65,5 +64,8 @@ console.table(GAS.gas());
 - All methods are safe to call repeatedly; `scan()` and `GAS.editors()` are read-mostly (scan may
   inject missing buttons — that's its job), and dedupe is handled by
   [`injectButton`](./api.md#toolbar).
-- `GAS.version` existing as both a property and a function is quirky but intentional — both
-  `GAS.version` and `GAS.version()` work in console auto-complete habits.
+- The source object literal declares `version` twice — first as `version: GAS_VERSION`, later as
+  `version() { … }`. Per JavaScript object-literal semantics the **later property wins**, so at
+  runtime `GAS.version` is the function and the string assignment is silently overwritten
+  (dead code upstream). Use `GAS.version()`; reading `GAS.version` without calling it gives you
+  the function itself, not the version string.

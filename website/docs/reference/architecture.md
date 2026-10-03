@@ -89,7 +89,9 @@ no cookies. Refresh and everything is rebuilt from scratch.
 
 ## DOM artifacts
 
-GAS only ever *adds* nodes; it never mutates GitHub's own DOM besides appending its button:
+GAS only ever *adds* nodes; it never mutates GitHub's own DOM besides two intentional cases:
+appending its toolbar button, and editing the active editor's content when you insert an emoji
+(the textarea value / contenteditable DOM — the point of the script). Everything else is untouched:
 
 | Artifact | Selector | Where |
 |---|---|---|

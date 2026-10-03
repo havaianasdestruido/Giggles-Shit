@@ -20,7 +20,7 @@ const REPO_URL = 'https://github.com/havaianasdestruido/Giggles-Shit/issues/new'
 const DEFAULT_GAS = [ { name, url }, /* … */ ];
 ```
 
-- `GAS_VERSION` — reported in the startup banner and by `GAS.version`.
+- `GAS_VERSION` — reported in the startup banner and by `GAS.version()`.
 - `REPO_URL` — logged in the startup banner so a console screenshot always contains a link to file
   bug reports (the `/issues/new` endpoint).
 - `DEFAULT_GAS` — the emoji catalog; full schema in [Custom emoji](../guides/custom-emojis.md)

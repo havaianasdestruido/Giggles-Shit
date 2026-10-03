@@ -17,13 +17,16 @@ on:
   pull_request: # build-only validation on PRs (deploy is skipped)
   workflow_dispatch:
 
+# Workflow-level: read-only. Deployment permissions (pages/id-token write)
+# are granted only to the deploy job below.
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
+# PR builds and main-branch deployments get separate concurrency groups so a
+# PR run can never cancel a deployment (and vice versa); in-progress runs are
+# still cancelled within the same group.
 concurrency:
-  group: pages
+  group: ${{ github.event_name == 'pull_request' && format('pages-pr-{0}', github.event.pull_request.number) || 'pages-main' }}
   cancel-in-progress: true
 
 env:
@@ -79,6 +82,11 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: build
     runs-on: ubuntu-latest
+    # Deployment permissions are scoped to this job only — the build job
+    # above stays contents:read-only.
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

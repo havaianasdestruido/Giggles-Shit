@@ -32,7 +32,7 @@ is GAS's exact header:
 | `@version` | `2.2.0` | Managers compare it during auto-update checks — **bump it on every release** or users won't get updates. Mirrored inside the code as `GAS_VERSION`. |
 | `@description` | … | Shown on install dialogs. |
 | `@author` | `havaianasdestruido` | Attribution. |
-| `@match` | `https://github.com/*` | Injection rule: the script runs on **every** github.com page (needed because comment editors live on issues, PRs, gists, discussions, …). Excludes gist.github.com and other subdomains — see note below. |
+| `@match` | `https://github.com/*` | Injection rule: the script runs on **every** github.com page (needed because comment editors live on issues, PRs, discussions, …). Excludes gist.github.com and other subdomains — see note below. |
 | `@icon` | `res/img/trollge.jpg` (raw URL) | Icon shown in the manager UI — the trollge, obviously. |
 | `@grant` | `none` | Requests **zero** privileged `GM_*` APIs; the script runs with plain page privileges. This keeps the install dialog permission-free. |
 | `@run-at` | `document-idle` | Executes after the DOM is ready. The in-code bootstrap still handles the `readyState === 'loading'` edge for managers that fire early. |

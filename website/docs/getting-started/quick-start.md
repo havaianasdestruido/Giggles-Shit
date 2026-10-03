@@ -15,9 +15,11 @@ Any page with a comment/description box works:
 - a new or existing **issue**
 - a **pull request** conversation
 - a PR **review comment**
-- a **gist** comment
-- editing a repo `README` / any `.md` file in the web editor — anywhere GitHub shows the
+- editing a repo `README` / any `.md` file in the web editor — anywhere github.com shows the
   formatting toolbar
+
+(gist.github.com is a different host and isn't covered by the script's `@match` — see
+[Userscript metadata](../reference/metadata.md#match-vs-gistgithubcom).)
 
 For a safe sandbox, open [a new issue on the GAS repo](https://github.com/havaianasdestruido/Giggles-Shit/issues/new)
 (you can close the tab without submitting).

@@ -58,4 +58,6 @@ that the URL is dead (see [Troubleshooting](./troubleshooting.md#an-emoji-image-
   `Giggles&Shit` — so it participates in tab order and screen readers.
 - Each picker item: `<button>` with `aria-label="Insert <name>"` and a matching `title`.
 - The close button has `aria-label="Close GAS picker"`.
-- Open state is also machine-readable via `document.querySelector('.gas-picker').dataset.open`.
+- Open state is machine-readable via the picker's `data-open` attribute — but the element only
+  exists after the first open (it's created lazily by `createPicker()`), so guard the lookup:
+  `document.querySelector('.gas-picker')?.dataset.open ?? 'false'`.

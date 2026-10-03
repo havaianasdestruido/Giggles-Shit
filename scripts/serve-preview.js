@@ -161,20 +161,29 @@ const MIME = {
   '.avif': 'image/avif'
 };
 
+// Containment check: resolve `p` relative to OUT and reject anything that
+// escapes the preview root (parent traversal) or is absolute. Unlike a
+// string-prefix check this is not fooled by siblings like `.preview-evil`.
+function isContained(p) {
+  const rel = path.relative(OUT, p);
+  return rel !== '' && rel !== '..' && !rel.startsWith('..' + path.sep) && !path.isAbsolute(rel);
+}
+
 const server = http.createServer((req, res) => {
   try {
     let urlPath = decodeURIComponent(new URL(req.url, 'http://x').pathname);
     if (urlPath.endsWith('/')) urlPath += 'index.html';
     let file = path.join(OUT, urlPath);
-    if (!file.startsWith(OUT)) {
+    if (!isContained(file)) {
       res.writeHead(403).end('forbidden');
       return;
     }
     if (!fs.existsSync(file) || fs.statSync(file).isDirectory()) {
       // SPA-ish fallback for directory-style URLs without trailing slash
       const alt = path.join(OUT, urlPath, 'index.html');
-      if (fs.existsSync(alt)) file = alt;
-      else {
+      if (isContained(alt) && fs.existsSync(alt) && !fs.statSync(alt).isDirectory()) {
+        file = alt;
+      } else {
         res.writeHead(404, { 'content-type': 'text/plain' });
         res.end(`404 — ${urlPath}\n(root: ${OUT})`);
         return;

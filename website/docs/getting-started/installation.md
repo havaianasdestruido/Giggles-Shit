@@ -25,10 +25,11 @@ GAS uses `@grant none`, so it runs in page context and needs **no extended permi
 
 ## Step 2 — Install the script
 
-Open the raw file — every manager detects the `.user.js` / `.userscript.js` suffix and shows an
-install dialog:
+Open the raw file — every manager detects the `.user.js` suffix and shows an
+install dialog (the `#.user.js` fragment below guarantees that match; fragments aren't sent to the
+server, so the same file downloads):
 
-**[➡ Install Giggles&Shit (raw userscript)](https://raw.githubusercontent.com/havaianasdestruido/Giggles-Shit/main/gas.userscript.js)**
+**[➡ Install Giggles&Shit (raw userscript)](https://raw.githubusercontent.com/havaianasdestruido/Giggles-Shit/main/gas.userscript.js#.user.js)**
 
 Click **Install** in your manager's dialog. That's it — there is no build step, no configuration,
 and nothing else to download.

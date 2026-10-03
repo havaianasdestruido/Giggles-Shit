@@ -44,6 +44,7 @@ npm start                                  # http://localhost:3000/docs
 
 # combined preview (no Ruby needed: simulates the Jekyll render and
 # merges the Docusaurus build under /docs, like production)
-cd website && npm run build && cd ..
+# MAIN_SITE_URL makes the docs' Main site/Features/FAQ links point at the preview
+cd website && MAIN_SITE_URL=http://localhost:3000/ npm run build && cd ..
 node scripts/serve-preview.js              # http://localhost:3000
 ```

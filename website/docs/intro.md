@@ -9,7 +9,7 @@ sidebar_position: 1
 
 **Giggles&Shit** (**GAS** for short) is a userscript for custom emojis on GitHub. It injects a small
 button into the formatting toolbar of GitHub's markdown editors (issues, pull requests, comments,
-gists, ...) that opens an image picker. Picking an image inserts a 20px `<img>` right where your
+the web file editor, ...) that opens an image picker. Picking an image inserts a 20px `<img>` right where your
 cursor is:
 
 ![Giggles&Shit demo](pathname:///img/demo.gif)

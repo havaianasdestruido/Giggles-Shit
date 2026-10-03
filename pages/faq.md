@@ -12,14 +12,17 @@ description: Frequently asked questions about Giggles&Shit (GAS).
 
 <h2>Is this safe? What permissions does it need?</h2>
 <p>GAS runs with <code>@grant none</code> — literally zero special permissions. It only works on
-<code>github.com</code> (<code>@match https://github.com/*</code>), makes no network requests of its
-own, and has no telemetry. The entire source is one readable file you can audit:
+<code>github.com</code> (<code>@match https://github.com/*</code>) and makes no network requests of
+its own: the script itself performs no API calls, while the emoji images in your comments are
+loaded by the browser from <code>raw.githubusercontent.com</code> when picking and rendering.
+There's also no telemetry. The entire source is one readable file you can audit:
 <a href="https://github.com/havaianasdestruido/Giggles-Shit/blob/main/gas.userscript.js">gas.userscript.js</a>.</p>
 
 <h2>Where does the button show up?</h2>
 <p>In the formatting toolbar of GitHub's markdown editors: issue &amp; PR descriptions, comments,
-PR reviews, replies, gists comments, the web file editor — anywhere GitHub renders a
-<code>[role="toolbar"]</code> with formatting actions.</p>
+PR reviews, replies, the web file editor — anywhere github.com renders a
+<code>[role="toolbar"]</code> with formatting actions. (gist.github.com is a separate host and is
+not covered — see the next question.)</p>
 
 <h2>Can I use my own memes?</h2>
 <p>Yes. Edit the <code>DEFAULT_GAS</code> array in the script — each entry is just
