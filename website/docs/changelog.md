@@ -13,7 +13,8 @@ and drive the managers' auto-update checks.
 
 The version documented by this site. Highlights of the current codebase:
 
-- Five bundled emoji (`bulleh`, `crine`, `rose`, `skull`, `trollge`) served from the repo's
+- Nine bundled emoji (`bulleh`, `crine`, `hmm`, `rose`, `skull`, `trollge`, `wet`, `woah`,
+  `yeah`) served from the repo's
   `res/img/` directory.
 - Toolbar button injected into GitHub's formatting toolbar (`[role="toolbar"]`), with dedupe via
   `data-gas-button` / `data-gas-processed`.

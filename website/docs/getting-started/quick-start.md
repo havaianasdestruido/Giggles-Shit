@@ -33,8 +33,9 @@ Hovering it shows the tooltip `Giggles&Shit`.
 
 ## 3. Open the picker
 
-Click the trollge button. A picker opens next to it showing the five bundled emoji:
-**bulleh**, **crine**, **rose**, **skull** and **trollge**.
+Click the trollge button. A picker opens next to it showing the nine bundled emoji:
+**bulleh**, **crine**, **hmm**, **rose**, **skull**, **trollge**, **wet**, **woah** and
+**yeah**.
 
 ![GAS picker in action](pathname:///img/demo.gif)
 

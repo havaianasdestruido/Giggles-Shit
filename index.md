@@ -50,7 +50,7 @@ permalink: /
       </div>
       <div class="card">
         <h3>🖼️ Built-in meme pack</h3>
-        <p>Ships with bulleh, crine, rose, skull and trollge, lazy-loaded from the repo. Broken links just dim instead of exploding.</p>
+        <p>Ships with bulleh, crine, hmm, rose, skull, trollge, wet, woah and yeah, lazy-loaded from the repo. Broken links just dim instead of exploding.</p>
       </div>
       <div class="card">
         <h3>⚛️ React-safe insertion</h3>
@@ -76,15 +76,19 @@ permalink: /
 <section class="section section-alt">
   <div class="container">
     <h2 class="section-title">The stock pack</h2>
-    <p class="section-lede">Five handcrafted masterpieces ship out of the box. The repo stores
+    <p class="section-lede">Nine handcrafted masterpieces ship out of the box. The repo stores
     <a href="https://github.com/havaianasdestruido/Giggles-Shit/tree/main/res/img">more images and GIFs</a>
     you can wire up yourself.</p>
     <div class="emoji-strip">
       <figure><img src="{{ '/res/img/bulleh.jpg' | relative_url }}" alt="bulleh"><figcaption>bulleh</figcaption></figure>
       <figure><img src="{{ '/res/img/crine.jpg' | relative_url }}" alt="crine"><figcaption>crine</figcaption></figure>
+      <figure><img src="{{ '/res/img/hmm.webp' | relative_url }}" alt="hmm"><figcaption>hmm</figcaption></figure>
       <figure><img src="{{ '/res/img/rose.jpg' | relative_url }}" alt="rose"><figcaption>rose</figcaption></figure>
       <figure><img src="{{ '/res/img/skull.jpg' | relative_url }}" alt="skull"><figcaption>skull</figcaption></figure>
       <figure><img src="{{ '/res/img/trollge.jpg' | relative_url }}" alt="trollge"><figcaption>trollge</figcaption></figure>
+      <figure><img src="{{ '/res/img/wet.webp' | relative_url }}" alt="wet"><figcaption>wet</figcaption></figure>
+      <figure><img src="{{ '/res/img/woah.webp' | relative_url }}" alt="woah"><figcaption>woah</figcaption></figure>
+      <figure><img src="{{ '/res/img/yeah.webp' | relative_url }}" alt="yeah"><figcaption>yeah</figcaption></figure>
     </div>
     <p class="section-more"><a href="{{ '/docs/reference/media-library/' | relative_url }}">Browse the full media library →</a></p>
   </div>

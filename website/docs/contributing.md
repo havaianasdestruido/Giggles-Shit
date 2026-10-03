@@ -28,7 +28,8 @@ Giggles-Shit/
 ├── gas.userscript.js      ← the entire userscript (≈1,800 lines, no build step)
 ├── res/
 │   └── img/
-│       ├── *.jpg          ← emoji stills (bulleh, crine, rose, skull, trollge, …)
+│       ├── *.jpg/*.webp   ← emoji stills (bulleh, crine, hmm, rose, skull, trollge, wet,
+│       │                     woah, yeah, …)
 │       └── gifs/*.gif     ← animated emoji (funkycat, funni, nyan, wave)
 ├── screenshots/           ← demo GIF for README/docs
 ├── index.md, _config.yml, _layouts/, assets/   ← Jekyll primary website (/)

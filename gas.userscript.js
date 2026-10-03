@@ -32,6 +32,10 @@
             url: 'https://raw.githubusercontent.com/havaianasdestruido/Giggles-Shit/refs/heads/main/res/img/crine.jpg'
         },
         {
+            name: 'hmm',
+            url: 'https://raw.githubusercontent.com/havaianasdestruido/Giggles-Shit/refs/heads/main/res/img/hmm.webp'
+        },
+        {
             name: 'rose',
             url: 'https://raw.githubusercontent.com/havaianasdestruido/Giggles-Shit/refs/heads/main/res/img/rose.jpg'
         },
@@ -42,6 +46,18 @@
         {
             name: 'trollge',
             url: 'https://raw.githubusercontent.com/havaianasdestruido/Giggles-Shit/refs/heads/main/res/img/trollge.jpg'
+        },
+        {
+            name: 'wet',
+            url: 'https://raw.githubusercontent.com/havaianasdestruido/Giggles-Shit/refs/heads/main/res/img/wet.webp'
+        },
+        {
+            name: 'woah',
+            url: 'https://raw.githubusercontent.com/havaianasdestruido/Giggles-Shit/refs/heads/main/res/img/woah.webp'
+        },
+        {
+            name: 'yeah',
+            url: 'https://raw.githubusercontent.com/havaianasdestruido/Giggles-Shit/refs/heads/main/res/img/yeah.webp'
         }
     ];
 

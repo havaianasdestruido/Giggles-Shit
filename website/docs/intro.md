@@ -17,7 +17,7 @@ cursor is:
 - **Current version:** 2.2.0
 - **Runs on:** `https://github.com/*`
 - **Permissions:** none (`@grant none`)
-- **Bundled emoji:** bulleh, crine, rose, skull, trollge (+ more images in the repo you can wire up yourself)
+- **Bundled emoji:** bulleh, crine, hmm, rose, skull, trollge, wet, woah, yeah (+ more images in the repo you can wire up yourself)
 
 ```html
 <!-- This is what gets inserted when you pick "trollge" -->

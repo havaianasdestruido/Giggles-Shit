@@ -17,7 +17,7 @@ https://raw.githubusercontent.com/havaianasdestruido/Giggles-Shit/refs/heads/mai
 
 ## Bundled in `DEFAULT_GAS`
 
-These five ship out of the box:
+These nine ship out of the box:
 
 <div className="gas-emoji-grid">
   <div className="gas-emoji-card">
@@ -27,6 +27,10 @@ These five ship out of the box:
   <div className="gas-emoji-card">
     <img src={require('@site/static/img/emojis/crine.jpg').default} alt="crine" />
     <code>crine</code>
+  </div>
+  <div className="gas-emoji-card">
+    <img src={require('@site/static/img/emojis/hmm.webp').default} alt="hmm" />
+    <code>hmm</code>
   </div>
   <div className="gas-emoji-card">
     <img src={require('@site/static/img/emojis/rose.jpg').default} alt="rose" />
@@ -40,10 +44,23 @@ These five ship out of the box:
     <img src={require('@site/static/img/emojis/trollge.jpg').default} alt="trollge" />
     <code>trollge</code>
   </div>
+  <div className="gas-emoji-card">
+    <img src={require('@site/static/img/emojis/wet.webp').default} alt="wet" />
+    <code>wet</code>
+  </div>
+  <div className="gas-emoji-card">
+    <img src={require('@site/static/img/emojis/woah.webp').default} alt="woah" />
+    <code>woah</code>
+  </div>
+  <div className="gas-emoji-card">
+    <img src={require('@site/static/img/emojis/yeah.webp').default} alt="yeah" />
+    <code>yeah</code>
+  </div>
 </div>
 
-`res/img/bulleh.jpg` · `res/img/crine.jpg` · `res/img/rose.jpg` · `res/img/skull.jpg` ·
-`res/img/trollge.jpg`
+`res/img/bulleh.jpg` · `res/img/crine.jpg` · `res/img/hmm.webp` · `res/img/rose.jpg` ·
+`res/img/skull.jpg` · `res/img/trollge.jpg` · `res/img/wet.webp` · `res/img/woah.webp` ·
+`res/img/yeah.webp`
 
 :::caution
 `trollge` is load-bearing: the toolbar button icon is the entry named `trollge`. Keep it (or keep
