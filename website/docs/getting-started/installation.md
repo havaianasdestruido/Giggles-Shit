@@ -49,7 +49,7 @@ into it.
 
 ```
 [GAS] ==============================
-[GAS] Starting GAS v2.2.0...
+[GAS] Starting GAS v2.3.0...
 [GAS] URL: https://github.com/havaianasdestruido/Giggles-Shit/issues/new
 [GAS] Debug API available as window.GAS
 [GAS] Try: GAS.scan()
@@ -60,7 +60,7 @@ If the button is missing, see [Troubleshooting](../guides/troubleshooting.md).
 ## Updating
 
 Userscript managers check for updates automatically (the script header carries a `@version`
-field, currently **2.2.0**). If you installed by copy-paste, repeat Step 2 and overwrite the old
+field, currently **2.3.0**). If you installed by copy-paste, repeat Step 2 and overwrite the old
 script code.
 
 ## Uninstalling

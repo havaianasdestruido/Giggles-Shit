@@ -1,6 +1,6 @@
 {
   "name": "giggles-shit-docs",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "private": true,
   "description": "Docusaurus documentation site for Giggles&Shit (served under /docs; the primary website is Jekyll).",
   "scripts": {

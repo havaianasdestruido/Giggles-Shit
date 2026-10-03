@@ -15,7 +15,7 @@ comment headers (`// ===== SECTION =====`) in the source.
 ### `GAS_VERSION` / `REPO_URL` / `DEFAULT_GAS` _(constants)_
 
 ```js
-const GAS_VERSION = '2.2.0';
+const GAS_VERSION = '2.3.0';
 const REPO_URL = 'https://github.com/havaianasdestruido/Giggles-Shit/issues/new';
 const DEFAULT_GAS = [ { name, url }, /* … */ ];
 ```
@@ -71,9 +71,14 @@ Decides whether a DOM node is a GAS-compatible editor:
 
 1. Must be an `HTMLElement`.
 2. `<textarea>` → heuristics on its attributes — matches if **any** of:
-   - `placeholder` matches `/description/i` ("Add a description…")
-   - `aria-label` matches `/markdown/i` ("Markdown value: …")
-   - `name` matches `/description/i`
+   - `placeholder` matches `/description|comment/i` ("Add a description…", "Leave a comment…")
+   - `aria-label` matches `/markdown|comment/i` ("Markdown value: …")
+   - `name` matches `/description|comment|body/i`
+   - none of the above match, but the element's enclosing `<form>` contains a
+     `[role="toolbar"][aria-label*="Formatting"]` anyway — a fallback for hosts like
+     gist.github.com whose comment textarea doesn't carry the same attribute wording as
+     github.com. Scoping to the enclosing form (rather than an unbounded ancestor walk)
+     avoids matching an unrelated toolbar elsewhere on the page.
 3. Otherwise: `element.isContentEditable === true`.
 
 These heuristics are the main place GitHub markup changes break GAS — see

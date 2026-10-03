@@ -8,7 +8,7 @@ permalink: /
   <div class="container">
     <div class="hero-grid">
       <div class="hero-copy">
-        <p class="kicker">A GitHub userscript · v2.2.0</p>
+        <p class="kicker">A GitHub userscript · v2.3.0</p>
         <h1>issues, but with <span class="accent">giggles</span>.<br>and shit.</h1>
         <p class="lede">
           <strong>Giggles&amp;Shit</strong> is a tiny userscript that adds a custom emoji &amp; image

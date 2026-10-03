@@ -8,7 +8,7 @@ description: Everything Giggles&Shit does — toolbar injection, the picker, ins
 <div class="container prose">
 
 <h1>Features</h1>
-<p class="dim">What you get when you install Giggles&amp;Shit (GAS) v2.2.0. Implementation details for each
+<p class="dim">What you get when you install Giggles&amp;Shit (GAS) v2.3.0. Implementation details for each
 item are linked into the <a href="{{ '/docs/' | relative_url }}">Docusaurus docs</a>.</p>
 
 <h2>🧰 Toolbar button injection</h2>

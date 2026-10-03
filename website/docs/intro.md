@@ -14,8 +14,8 @@ cursor is:
 
 ![Giggles&Shit demo](pathname:///img/demo.gif)
 
-- **Current version:** 2.2.0
-- **Runs on:** `https://github.com/*`
+- **Current version:** 2.3.0
+- **Runs on:** `https://github.com/*` and `https://gist.github.com/*`
 - **Permissions:** none (`@grant none`)
 - **Bundled emoji:** bulleh, crine, rose, skull, trollge (+ more images in the repo you can wire up yourself)
 
