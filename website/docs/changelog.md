@@ -20,7 +20,8 @@ and drive the managers' auto-update checks.
 
 Highlights of the 2.2.0 codebase:
 
-- Five bundled emoji (`bulleh`, `crine`, `rose`, `skull`, `trollge`) served from the repo's
+- Twelve bundled emoji (`84`, `boo`, `bulleh`, `crine`, `fire`, `hmm`, `rose`, `skull`,
+  `trollge`, `wet`, `woah`, `yeah`) served from the repo's
   `res/img/` directory.
 - Toolbar button injected into GitHub's formatting toolbar (`[role="toolbar"]`), with dedupe via
   `data-gas-button` / `data-gas-processed`.

@@ -25,12 +25,28 @@
 
     const DEFAULT_GAS = [
         {
+            name: '84',
+            url: 'https://raw.githubusercontent.com/havaianasdestruido/Giggles-Shit/refs/heads/main/res/img/84.jpeg'
+        },
+        {
+            name: 'boo',
+            url: 'https://raw.githubusercontent.com/havaianasdestruido/Giggles-Shit/refs/heads/main/res/img/boo.gif'
+        },
+        {
             name: 'bulleh',
             url: 'https://raw.githubusercontent.com/havaianasdestruido/Giggles-Shit/refs/heads/main/res/img/bulleh.jpg'
         },
         {
             name: 'crine',
             url: 'https://raw.githubusercontent.com/havaianasdestruido/Giggles-Shit/refs/heads/main/res/img/crine.jpg'
+        },
+        {
+            name: 'fire',
+            url: 'https://raw.githubusercontent.com/havaianasdestruido/Giggles-Shit/refs/heads/main/res/img/fire.jpeg'
+        },
+        {
+            name: 'hmm',
+            url: 'https://raw.githubusercontent.com/havaianasdestruido/Giggles-Shit/refs/heads/main/res/img/hmm.webp'
         },
         {
             name: 'rose',
@@ -43,6 +59,18 @@
         {
             name: 'trollge',
             url: 'https://raw.githubusercontent.com/havaianasdestruido/Giggles-Shit/refs/heads/main/res/img/trollge.jpg'
+        },
+        {
+            name: 'wet',
+            url: 'https://raw.githubusercontent.com/havaianasdestruido/Giggles-Shit/refs/heads/main/res/img/wet.webp'
+        },
+        {
+            name: 'woah',
+            url: 'https://raw.githubusercontent.com/havaianasdestruido/Giggles-Shit/refs/heads/main/res/img/woah.webp'
+        },
+        {
+            name: 'yeah',
+            url: 'https://raw.githubusercontent.com/havaianasdestruido/Giggles-Shit/refs/heads/main/res/img/yeah.webp'
         }
     ];
 
